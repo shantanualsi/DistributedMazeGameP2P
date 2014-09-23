@@ -13,7 +13,7 @@ import java.rmi.registry.LocateRegistry;
 import java.rmi.registry.Registry;
 import java.util.HashMap;
 
-public class MazeClient {
+public class MazeClient extends Thread{
 
 	int clientID;
 	int gameBoard[][];
@@ -25,7 +25,7 @@ public class MazeClient {
     	this.host = host;
     }
 
-    public void startClient() {
+    public void run() {
 		
 		GameMethod gs = null;
 		int msgType;

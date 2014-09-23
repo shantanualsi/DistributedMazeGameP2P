@@ -70,7 +70,7 @@ public class MazeGame {
 		
 		
 		MazeClient mc = new MazeClient(serverip);		
-		mc.startClient();
+		mc.start();
 		
 	}
 	
