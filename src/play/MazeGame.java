@@ -45,20 +45,17 @@ public class MazeGame {
 			
 		}
 		
-		// Game client would start for all		
+				
 		startGameClient(serverip);
 		
 		
 	}
 	
-	//Starts the maze server
+	
 	private static void startMazeServer(int gridsize,int nTreasures){
 		
 		MazeServer ms = new MazeServer(gridsize,nTreasures);
 		ms.start();
-		
-		//Wait for the server to start
-		
 		try {
 			ms.join();
 		} catch (InterruptedException e) {
@@ -69,8 +66,7 @@ public class MazeGame {
 		
 		
 	}
-
-	//Starts the maze client	
+	
 	private static void startGameClient(String serverip){
 		
 		
