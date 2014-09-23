@@ -2,12 +2,16 @@ package client;
 
 import game.Constants;
 import game.Direction;
+import game.GameImplementation;
 import game.GameMethod;
 import game.MessageType;
 
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.net.InetAddress;
+import java.net.UnknownHostException;
+import java.rmi.AlreadyBoundException;
 import java.rmi.RemoteException;
 import java.rmi.registry.LocateRegistry;
 import java.rmi.registry.Registry;
@@ -18,16 +22,26 @@ public class MazeClient extends Thread{
 	int clientID;
 	int gameBoard[][];
 	int boardSize;
+	int nTreasures;
+	String backUpServerIP;
 	String host;
+	String myIP;
 	
     public MazeClient(String host) {
     	
     	this.host = host;
+    	try {
+			this.myIP = InetAddress.getLocalHost().getHostAddress();
+
+		} catch (UnknownHostException e) {
+			System.out.println("Unknown Host");
+		}
     }
 
     public void run() {
 		
 		GameMethod gs = null;
+		GameImplementation mygs = null;
 		int msgType;
 		HashMap<String,Object> res = null;
 		
@@ -64,7 +78,28 @@ public class MazeClient extends Thread{
 			case MessageType.ConnectSuccess:
 				mc.clientID = Integer.parseInt(res.get(Constants.MessageObject).toString());
 				mc.boardSize = Integer.parseInt(res.get(Constants.BoardSize).toString());
+				mc.backUpServerIP = res.get(Constants.BackUpServerIP).toString();
 				System.out.println("Connected with id "+ mc.clientID);
+				
+				//If I am the backup server 
+				//Register my object for RMI
+				if(mc.myIP.equals(mc.backUpServerIP)){
+					Registry registry;
+					try {
+						mygs = new GameImplementation(this.boardSize);
+						registry = LocateRegistry.getRegistry();
+						registry.bind("BackUp",mygs);
+						gs.startBackUpService();
+					} catch (RemoteException e1) {
+						// TODO Auto-generated catch block
+						e1.printStackTrace();
+					} catch (AlreadyBoundException e) {
+						// TODO Auto-generated catch block
+						e.printStackTrace();
+					}
+				
+				}
+				
 				break;
 			case MessageType.ConnectError:
 				String msg =res.get(Constants.MessageObject).toString(); 
@@ -121,6 +156,14 @@ public class MazeClient extends Thread{
 						break;
         			case MessageType.MazeObject:    					
         				mc.gameBoard = (int[][]) res.get(Constants.MessageObject);
+        				String backServerIP = res.get(Constants.BackUpServerIP).toString();
+        				
+        				//BackUpServer Changed
+        				if(!backServerIP.equals(mc.backUpServerIP)){
+        					
+        					//[TODO] Handle Backup server change here
+        					
+        				}
 	    				mc.printGameBoard();
 						break;
         			case MessageType.GameOver:

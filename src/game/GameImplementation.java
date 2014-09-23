@@ -1,6 +1,11 @@
 package game;
 
+import java.rmi.NotBoundException;
 import java.rmi.RemoteException;
+import java.rmi.registry.LocateRegistry;
+import java.rmi.registry.Registry;
+import java.rmi.server.RemoteServer;
+import java.rmi.server.ServerNotActiveException;
 import java.rmi.server.UnicastRemoteObject;
 import java.util.HashMap;
 import java.util.Random;
@@ -17,12 +22,26 @@ public class GameImplementation extends UnicastRemoteObject implements GameMetho
 	private HashMap <Integer,Player> pList;
 	private int maxPlayers;
 	int lastId = 0;
+	String backUpServerIP = null;
+	GameMethod backgs;
+	
 	
 	GameInfo gameInfo = GameInfo.NotStarted;
 	
 	private static final long serialVersionUID = -4933868291603601249L;
 	
 	String[] msg = new String[2];
+	
+	
+	public GameImplementation(int bSize) throws RemoteException {
+		super();
+ 
+		this.boardSize = bSize;		
+		this.gameBoard = new int[boardSize][boardSize];	
+		this.pList = new HashMap<Integer,Player>();
+		this.maxPlayers = bSize*bSize - 1;
+					
+	}
 	
 	
 	public GameImplementation(int bSize,int nTreasures) throws RemoteException {
@@ -162,9 +181,8 @@ public class GameImplementation extends UnicastRemoteObject implements GameMetho
 		
 			case NotStarted:
 					this.gameInfo = GameInfo.Waiting;
-				// Need to code this again.
 					WaitConnect wc = new WaitConnect(this);
-					wc.start();
+					wc.start();					
 					break;
 			case Started:
 					String msg = "Game has already started !!! Cannot join now.";
@@ -183,6 +201,20 @@ public class GameImplementation extends UnicastRemoteObject implements GameMetho
 			setRandomPlayerPosition(p);
 			HashMap <String,Object> hm = createMessage(MessageType.ConnectSuccess,this.lastId);
 			hm.put(Constants.BoardSize, this.boardSize);
+			
+			//Set the second person to connect as backup server
+			if(this.lastId == 2){
+				
+				try{
+					this.backUpServerIP = RemoteServer.getClientHost();
+				} catch (ServerNotActiveException e) {
+					
+					System.out.println("Error Setting up remote server ip");
+				}						
+			}
+			
+			
+			hm.put(Constants.BackUpServerIP,this.backUpServerIP);
 			return hm;
 			
 		}else{
@@ -281,4 +313,32 @@ public class GameImplementation extends UnicastRemoteObject implements GameMetho
 		return createMessage(MessageType.MazeObject,this.gameBoard);
 	}
 	
+	//Initializes the BackUpService Object
+	public boolean startBackUpService(){
+		
+		Registry registry;
+		try {
+			registry = LocateRegistry.getRegistry(this.backUpServerIP);
+			this.backgs = (GameMethod) registry.lookup("BackUp");
+			System.out.println("Done Handshaking");			
+		} catch (RemoteException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (NotBoundException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		  
+		 
+		
+		return true;
+		
+	}
+	
+	//[TODO] Recreate the current GameImplementation Object here
+	public void receivedBackUp(){
+		
+		System.out.println("Received Some info");
+		
+	}
 }
