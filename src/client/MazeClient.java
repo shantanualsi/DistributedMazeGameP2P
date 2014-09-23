@@ -84,10 +84,10 @@ public class MazeClient extends Thread{
 				//If I am the backup server 
 				//Register my object for RMI
 				if(mc.myIP.equals(mc.backUpServerIP)){
-					System.out.println("Naman is here");
+					
 					Registry registry;
 					try {
-						mygs = new GameImplementation(this.boardSize);
+						mygs = new GameImplementation(this.boardSize,this.nTreasures,this.myIP);
 						registry = LocateRegistry.getRegistry();
 						registry.bind("BackUp",mygs);
 						gs.startBackUpService();

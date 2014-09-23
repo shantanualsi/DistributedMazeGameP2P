@@ -6,5 +6,6 @@ public class Constants {
 	public static final String MessageType = "MT";
 	public static final String MessageObject = "MO";
 	public static final String BackUpServerIP = "BSI";
+	public static final String Treasures = "TR";
 	
 }

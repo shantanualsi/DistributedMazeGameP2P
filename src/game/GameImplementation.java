@@ -33,14 +33,15 @@ public class GameImplementation extends UnicastRemoteObject implements GameMetho
 	String[] msg = new String[2];
 	
 	
-	public GameImplementation(int bSize) throws RemoteException {
+	public GameImplementation(int bSize,int nTreasures,String backUpServerIP) throws RemoteException {
 		super();
  
 		this.boardSize = bSize;		
+		this.numberOfTreasures = nTreasures;
 		this.gameBoard = new int[boardSize][boardSize];	
 		this.pList = new HashMap<Integer,Player>();
 		this.maxPlayers = bSize*bSize - 1;
-		this.backUpServerIP = "none";
+		this.backUpServerIP =backUpServerIP;
 					
 	}
 	
@@ -201,7 +202,7 @@ public class GameImplementation extends UnicastRemoteObject implements GameMetho
 			this.pList.put(this.lastId, p);
 			setRandomPlayerPosition(p);
 			HashMap <String,Object> hm = createMessage(MessageType.ConnectSuccess,this.lastId);
-			hm.put(Constants.BoardSize, this.boardSize);
+			
 			
 			//Set the second person to connect as backup server
 			if(this.lastId == 2){
@@ -214,7 +215,8 @@ public class GameImplementation extends UnicastRemoteObject implements GameMetho
 				}						
 			}
 			
-			
+			hm.put(Constants.BoardSize, this.boardSize);
+			hm.put(Constants.Treasures, this.numberOfTreasures);
 			hm.put(Constants.BackUpServerIP,this.backUpServerIP);
 			return hm;
 			
@@ -338,7 +340,7 @@ public class GameImplementation extends UnicastRemoteObject implements GameMetho
 		HashMap<String,Object> hm =  createMessage(MessageType.MazeObject,this.gameBoard);
 		hm.put(Constants.BackUpServerIP,this.backUpServerIP);
 		try {
-			this.backgs.receiveBackUp(this.backUpServerIP, this.gameBoard, this.pList);
+			this.backgs.receiveBackUp(this.gameBoard, this.pList);
 		} catch (RemoteException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
@@ -369,10 +371,9 @@ public class GameImplementation extends UnicastRemoteObject implements GameMetho
 	}
 	
 	//[TODO] Recreate the current GameImplementation Object here
-	public void receiveBackUp(String backupServerIp, int[][] gameBoard,HashMap<Integer,Player> pList ){
+	public void receiveBackUp(int[][] gameBoard,HashMap<Integer,Player> pList ){
 		
-		this.gameBoard = gameBoard;
-		this.backUpServerIP = backupServerIp;
+		this.gameBoard = gameBoard;		
 		this.pList = pList;
 		printGameBoard();
 		
