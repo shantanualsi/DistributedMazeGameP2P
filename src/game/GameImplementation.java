@@ -269,8 +269,7 @@ public class GameImplementation extends UnicastRemoteObject implements GameMetho
 			//[TODO] Return the final score to print who won the game 
 			return createMessage(MessageType.GameOver,this.gameBoard);
 		}
-		
-		
+				
 		Player p = this.pList.get(id);
 		int curX = p.getxPos();
 		int curY = p.getyPos();
@@ -288,7 +287,9 @@ public class GameImplementation extends UnicastRemoteObject implements GameMetho
 			case Direction.RIGHT: newY += 1;
 				break;
 			case Direction.STAY:
-				return createMessage(MessageType.MazeObject,this.gameBoard);
+				HashMap<String,Object> hm = createMessage(MessageType.MazeObject,this.gameBoard);
+				hm.put(Constants.BackUpServerIP,this.backUpServerIP);
+				return hm;
 			default:
 				return createMessage(MessageType.Error,"Unknown move");
 		}
@@ -303,7 +304,7 @@ public class GameImplementation extends UnicastRemoteObject implements GameMetho
 				
 				//Check game over condition here
 				if(numberOfTreasures == 0){
-					this.gameInfo = GameInfo.GameOver;
+					this.gameInfo = GameInfo.GameOver;					
 					return createMessage(MessageType.GameOver,this.gameBoard);
 				}
 				
@@ -311,7 +312,9 @@ public class GameImplementation extends UnicastRemoteObject implements GameMetho
 			}
 		}
 		
-		return createMessage(MessageType.MazeObject,this.gameBoard);
+		HashMap<String,Object> hm =  createMessage(MessageType.MazeObject,this.gameBoard);
+		hm.put(Constants.BackUpServerIP,this.backUpServerIP);
+		return hm;
 	}
 	
 	//Initializes the BackUpService Object
