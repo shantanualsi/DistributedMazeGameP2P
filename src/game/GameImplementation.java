@@ -352,6 +352,7 @@ public class GameImplementation extends UnicastRemoteObject implements GameMetho
 		this.backUpServerIP = backupServerIp;
 		this.pList = pList;
 		printGameBoard();
+		
 		System.out.println("Received new information - ");
 		
 	}
