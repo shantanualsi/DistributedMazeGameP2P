@@ -5,6 +5,8 @@ import java.rmi.server.UnicastRemoteObject;
 import java.util.HashMap;
 import java.util.Random;
 
+import server.WaitConnect;
+
 //import server.WaitConnect;
 
 public class GameImplementation extends UnicastRemoteObject implements GameMethod{
@@ -161,8 +163,8 @@ public class GameImplementation extends UnicastRemoteObject implements GameMetho
 			case NotStarted:
 					this.gameInfo = GameInfo.Waiting;
 				// Need to code this again.
-				//	WaitConnect wc = new WaitConnect(this);
-				//	wc.start();
+					WaitConnect wc = new WaitConnect(this);
+					wc.start();
 					break;
 			case Started:
 					String msg = "Game has already started !!! Cannot join now.";

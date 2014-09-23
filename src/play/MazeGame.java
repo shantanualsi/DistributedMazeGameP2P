@@ -1,32 +1,22 @@
 package play;
 
-import game.GameImplementation;
-
-import java.rmi.AlreadyBoundException;
-import java.rmi.RemoteException;
-import java.rmi.registry.LocateRegistry;
-import java.rmi.registry.Registry;
+import client.MazeClient;
+import server.MazeServer;
 
 public class MazeGame {
-	
+			
 	
 	public static void main(String[] args){
 		
-		switch(args.length){
 		
+		String serverip = "localhost";
+		switch(args.length){		
 		
 		//Acting as Client now
-		case 1:
+		case 1: serverip = args[0]; 
 				break;
 		//Acting as Server now
-		case 2:
-			
-			if(args.length != 2){
-				
-				System.out.println("Usage java MazeServer <Size of grid> <Number of treasures>");
-				System.exit(-1);
-			}
-			
+		case 2:			
 			int gridsize = Integer.parseInt(args[0]);
 			int nTreasures = Integer.parseInt(args[1]);
 			
@@ -43,26 +33,16 @@ public class MazeGame {
 				
 			}
 			
-			Registry registry  = null;								
-			
+			startMazeServer(gridsize,nTreasures);
+						
 			try {
-				
-				GameImplementation gs = new GameImplementation(gridsize,nTreasures);
-				registry = LocateRegistry.getRegistry();
-				registry.bind("GameImplementation", gs);
-				System.out.println("Server Started");
-				
-			} catch (RemoteException re) {
-				
-				System.err.println("Server Cannot be Started");
-				re.printStackTrace();
-			} catch(AlreadyBoundException abe){
-				
-				System.err.println("Already Bounded");
-				abe.printStackTrace();
-			}	    		
+				Thread.sleep(2000);
+			} catch (InterruptedException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
 			
-				break;
+			break;
 		default:
 				System.out.println("Usage");
 				System.out.println("play.ClientServer <gridsize> <numberoftreasures>");
@@ -71,7 +51,26 @@ public class MazeGame {
 			
 		}
 		
+				
+		startGameClient(serverip);
 		
+		
+	}
+	
+	
+	private static void startMazeServer(int gridsize,int nTreasures){
+		
+		MazeServer ms = new MazeServer(gridsize,nTreasures);
+		ms.start();		
+		
+		
+	}
+	
+	private static void startGameClient(String serverip){
+		
+		
+		MazeClient mc = new MazeClient(serverip);		
+		mc.startClient();
 		
 	}
 	
