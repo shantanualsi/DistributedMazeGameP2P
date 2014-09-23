@@ -22,7 +22,7 @@ public class GameImplementation extends UnicastRemoteObject implements GameMetho
 	private HashMap <Integer,Player> pList;
 	private int maxPlayers;
 	int lastId = 0;
-	String backUpServerIP = null;
+	String backUpServerIP;
 	GameMethod backgs;
 	
 	
@@ -40,6 +40,7 @@ public class GameImplementation extends UnicastRemoteObject implements GameMetho
 		this.gameBoard = new int[boardSize][boardSize];	
 		this.pList = new HashMap<Integer,Player>();
 		this.maxPlayers = bSize*bSize - 1;
+		this.backUpServerIP = "none";
 					
 	}
 	
@@ -52,7 +53,7 @@ public class GameImplementation extends UnicastRemoteObject implements GameMetho
 		this.gameBoard = new int[boardSize][boardSize];	
 		this.pList = new HashMap<Integer,Player>();
 		this.maxPlayers = bSize*bSize - 1;
-		
+		this.backUpServerIP = "none";
 		
 		//Initialize GameBoard with all zeros
 		for(int i=0;i<boardSize;i++){
