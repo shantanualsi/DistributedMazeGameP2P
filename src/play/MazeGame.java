@@ -34,13 +34,7 @@ public class MazeGame {
 			}
 			
 			startMazeServer(gridsize,nTreasures);
-						
-			try {
-				Thread.sleep(2000);
-			} catch (InterruptedException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			}
+									
 			
 			break;
 		default:
@@ -61,7 +55,14 @@ public class MazeGame {
 	private static void startMazeServer(int gridsize,int nTreasures){
 		
 		MazeServer ms = new MazeServer(gridsize,nTreasures);
-		ms.start();		
+		ms.start();
+		try {
+			ms.join();
+		} catch (InterruptedException e) {
+			
+			System.out.println("Exception in waiting for the thread");
+			
+		}
 		
 		
 	}

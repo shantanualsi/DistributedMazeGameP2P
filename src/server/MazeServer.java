@@ -31,7 +31,7 @@ public class MazeServer extends Thread{
 			GameImplementation gs = new GameImplementation(this.gridsize,this.nTreasures);
 			registry = LocateRegistry.getRegistry();
 			registry.bind("GameImplementation", gs);
-			System.out.println("Server Started");
+			System.out.println("Server Started");			
 			
 		} catch (RemoteException re) {
 			
