@@ -5,6 +5,6 @@ public class Constants {
 	public static final String BoardSize = "BS";
 	public static final String MessageType = "MT";
 	public static final String MessageObject = "MO";
-	public static final String BackUpServerIP = "BS";
+	public static final String BackUpServerIP = "BSI";
 	
 }
