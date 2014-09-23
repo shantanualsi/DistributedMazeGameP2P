@@ -314,6 +314,12 @@ public class GameImplementation extends UnicastRemoteObject implements GameMetho
 		
 		HashMap<String,Object> hm =  createMessage(MessageType.MazeObject,this.gameBoard);
 		hm.put(Constants.BackUpServerIP,this.backUpServerIP);
+		try {
+			this.backgs.receiveBackUp();
+		} catch (RemoteException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
 		return hm;
 	}
 	
@@ -340,7 +346,7 @@ public class GameImplementation extends UnicastRemoteObject implements GameMetho
 	}
 	
 	//[TODO] Recreate the current GameImplementation Object here
-	public void receivedBackUp(){
+	public void receiveBackUp(){
 		
 		System.out.println("Received Some info");
 		
