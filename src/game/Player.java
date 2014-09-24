@@ -1,11 +1,15 @@
 package game;
 
-public class Player {
+import java.io.Serializable;
+
+public class Player implements Serializable{
 	
 	private int playerScore;
 	private int xPos;
 	private int yPos;
 	private int id;
+	
+	private static final long serialVersionUID = -4533268491603601249L;
 	 
 	public Player(int id){
 		this.id = id;		
