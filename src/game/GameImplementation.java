@@ -274,7 +274,7 @@ public class GameImplementation extends UnicastRemoteObject implements GameMetho
 	private void printScoreBoard(){
 		System.out.println("---------------------------------------SCORES--------------------------------------------");
 		System.out.println("Player \t\t Score" );
-		for(int i = 0; i<lastId; i++){
+		for(int i = 1; i<lastId; i++){
 			System.out.println(i+" \t\t "+ pList.get(i).getPlayerScore());
 		}
 		System.out.println("------------------------------------------------------------------------------------------");
@@ -371,8 +371,7 @@ public class GameImplementation extends UnicastRemoteObject implements GameMetho
 	}
 	
 	//[TODO] Recreate the current GameImplementation Object here
-	public void receiveBackUp(int[][] gameBoard,HashMap<Integer,Player> pList ){
-		
+	public void receiveBackUp(int[][] gameBoard,HashMap<Integer,Player> pList ){	
 		this.gameBoard = gameBoard;		
 		this.pList = pList;
 		printGameBoard();
