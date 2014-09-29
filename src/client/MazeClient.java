@@ -32,7 +32,7 @@ public class MazeClient extends Thread{
     	this.host = host;
     	try {
 			this.myIP = InetAddress.getLocalHost().getHostAddress();
-
+			System.out.println(this.myIP);
 		} catch (UnknownHostException e) {
 			System.out.println("Unknown Host");
 		}
