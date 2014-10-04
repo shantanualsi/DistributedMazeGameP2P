@@ -259,28 +259,10 @@ public class GameImplementation extends UnicastRemoteObject implements GameMetho
 		
 		
 	}
-	private int getWinner() {
-		int winnerId=0;
-		int winnerScore=0;
-		for(int i=1;i<lastId;i++){
-			if(pList.get(i).getPlayerScore()> winnerScore){
-				winnerScore = pList.get(i).getPlayerScore();
-				winnerId = i;
-			}
-		}
-		return winnerId;
-	}
 	
-	public void getScoreBoard(){
-		System.out.println("---------------------------------------SCORES--------------------------------------------");
-		System.out.println("Player \t\t Score" );
-		
-		for(int i = 1; i<lastId; i++){
-			System.out.println(i+" \t\t "+ pList.get(i).getPlayerScore());
-		}
-		System.out.println("------------------------------------------------------------------------------------------");
-		System.out.println("Player "+getWinner()+"wins!!!");
-		System.out.println("------------------------------------------------------------------------------------------");
+	
+	public HashMap<Integer, Player> getPList(){
+		return pList;
 	}
 	
 	//Makes the move given the is of player and direction

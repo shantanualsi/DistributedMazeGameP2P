@@ -5,6 +5,7 @@ import game.Direction;
 import game.GameImplementation;
 import game.GameMethod;
 import game.MessageType;
+import game.Player;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -16,6 +17,8 @@ import java.rmi.RemoteException;
 import java.rmi.registry.LocateRegistry;
 import java.rmi.registry.Registry;
 import java.util.HashMap;
+import java.util.Iterator;
+import java.util.Map;
 
 public class MazeClient extends Thread{
 
@@ -169,7 +172,7 @@ public class MazeClient extends Thread{
 						break;
         			case MessageType.GameOver:
         				//Print score board.
-        				gs.getScoreBoard();
+        				printScoreBoard(gs.getPList());
 	    				message = res.get(Constants.MessageObject).toString();
 						System.out.println("Game Over. Thank you for playing...");	
 						//If game gets over client should move out of this while loop
@@ -214,5 +217,28 @@ public class MazeClient extends Thread{
 		
 		System.out.println();
     	
+    } 
+    
+    private void printScoreBoard(HashMap<Integer, Player> pList){
+    	System.out.println("---------------------------------------SCORES--------------------------------------------");
+		System.out.println("Player \t\t Score" );
+		for(Map.Entry<Integer, Player> entry : pList.entrySet()){
+			System.out.println(entry.getKey()+"\t\t"+entry.getValue().getPlayerScore());
+		}
+		System.out.println("------------------------------------------------------------------------------------------");
+		System.out.println("Player "+getWinner(pList)+"wins!!!");
+		System.out.println("------------------------------------------------------------------------------------------");
     }
+    
+    private int getWinner(HashMap<Integer, Player> pList) {
+		int winnerId=0;
+		int winnerScore=0;
+		for(Map.Entry<Integer, Player> entry: pList.entrySet()){
+			if(entry.getValue().getPlayerScore()> winnerScore){
+				winnerScore = entry.getValue().getPlayerScore();
+				winnerId = entry.getValue().getId();
+			}
+		}
+		return winnerId;
+	}
 }

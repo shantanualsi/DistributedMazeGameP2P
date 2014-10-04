@@ -10,5 +10,5 @@ public interface GameMethod extends Remote{
 	public HashMap<String,Object> ConnectToGame() throws RemoteException;
 	public boolean startBackUpService() throws RemoteException;
 	public void receiveBackUp(int[][] gameBoard,HashMap<Integer,Player> pList) throws RemoteException;
-	public void getScoreBoard()throws RemoteException;
+	public HashMap<Integer, Player> getPList()throws RemoteException;
 }
