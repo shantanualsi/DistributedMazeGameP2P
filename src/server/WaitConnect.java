@@ -24,7 +24,7 @@ public class WaitConnect extends Thread {
 		}
 		this.gi.setRandomTreasures();		
 		this.gi.startGame();
-		System.out.println("Game Started");
+		System.out.println("Server says - Game Started");
 		
 	}
 	

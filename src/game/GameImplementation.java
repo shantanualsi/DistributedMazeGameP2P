@@ -4,8 +4,6 @@ import java.rmi.NotBoundException;
 import java.rmi.RemoteException;
 import java.rmi.registry.LocateRegistry;
 import java.rmi.registry.Registry;
-import java.rmi.server.RemoteServer;
-import java.rmi.server.ServerNotActiveException;
 import java.rmi.server.UnicastRemoteObject;
 import java.util.HashMap;
 import java.util.Random;
@@ -23,6 +21,7 @@ public class GameImplementation extends UnicastRemoteObject implements GameMetho
 	private int maxPlayers;
 	int lastId = 0;
 	int backUpServerID;
+	long startTime = 0; 
 	GameMethod backgs;
 	
 	
@@ -103,12 +102,12 @@ public class GameImplementation extends UnicastRemoteObject implements GameMetho
 			
 		}
 		
-		this.printGameBoard();
+		//this.printGameBoard();
 		
 	}
 	
 	//Prints the gameBoard on server
-	private void printGameBoard(){
+	/*private void printGameBoard(){
 		
 		for (int i = 0; i < this.boardSize; i++) {
 			for (int j = 0; j < this.boardSize; j++) {
@@ -118,7 +117,7 @@ public class GameImplementation extends UnicastRemoteObject implements GameMetho
 		}
 		
 		System.out.println();
-	}
+	}*/
 	
 	//Checks if position x,y is occupied by the player or not
 	private Boolean isOccupiedByPlayer(int x,int y){
@@ -173,13 +172,14 @@ public class GameImplementation extends UnicastRemoteObject implements GameMetho
 		
 	}
 	
-	//Connects a client to the game
+	
 	public HashMap<String,Object> ConnectToGame(String clientIP,int clientPort){
 		
-		 
+		
 		switch(this.gameInfo){
 		
 			case NotStarted:
+					this.startTime = System.currentTimeMillis();
 					this.gameInfo = GameInfo.Waiting;
 					WaitConnect wc = new WaitConnect(this);
 					wc.start();					
@@ -189,8 +189,9 @@ public class GameImplementation extends UnicastRemoteObject implements GameMetho
 					return createMessage(MessageType.ConnectError,msg);
 			default:
 				break;													
-			
+		
 		}
+		
 		
 		this.lastId++;
 		
@@ -202,20 +203,15 @@ public class GameImplementation extends UnicastRemoteObject implements GameMetho
 						
 			this.pList.put(this.lastId, p);
 			setRandomPlayerPosition(p);
-			HashMap <String,Object> hm = createMessage(MessageType.ConnectSuccess,this.lastId);
-			
-			
+			HashMap <String,Object> hm = createMessage(MessageType.ConnectSuccess,this.lastId);		
+			hm.put(Constants.TimeLeft, this.startTime+20000 - System.currentTimeMillis());			
 			//Set the second person to connect as backup server
 			if(this.lastId == 2){
 				this.backUpServerID  = 2;										
-			}
-			
-			
-			
-			hm.put(Constants.BoardSize, this.boardSize);
-			hm.put(Constants.Treasures, this.numberOfTreasures);
+			}						
 			hm.put(Constants.BackUpServerID,this.backUpServerID);
-			hm.put(Constants.Players,this.pList);
+			hm.put(Constants.BoardSize, this.boardSize);
+			hm.put(Constants.Treasures, this.numberOfTreasures);		
 			
 			return hm;
 			
@@ -223,7 +219,28 @@ public class GameImplementation extends UnicastRemoteObject implements GameMetho
 			
 			return createMessage(MessageType.ConnectError,"Maximum players limit reached. Cannot connect now");
 		}
-					
+			
+	
+		
+	}
+	
+	
+	//Connects a client to the game
+	public HashMap<String,Object> GetInitialGameState(){
+		
+		HashMap <String,Object> hm;
+		
+		if(this.gameInfo == GameInfo.Waiting){
+			
+			hm = createMessage(MessageType.Error,"Still Waiting");
+			
+		}else{
+			
+			hm = createMessage(MessageType.ConnectSuccess,this.gameBoard);
+			hm.put(Constants.Players,this.pList);
+		}					
+		
+		return hm;
 		
 	}
 	
@@ -260,9 +277,6 @@ public class GameImplementation extends UnicastRemoteObject implements GameMetho
 	}
 	
 	
-	public HashMap<Integer, Player> getPList(){
-		return pList;
-	}
 	
 	//Makes the move given the is of player and direction
 	public HashMap<String,Object> move(int id,int dir){

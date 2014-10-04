@@ -17,7 +17,6 @@ import java.rmi.RemoteException;
 import java.rmi.registry.LocateRegistry;
 import java.rmi.registry.Registry;
 import java.util.HashMap;
-import java.util.Map;
 
 public class MazeClient extends Thread{
 
@@ -26,6 +25,7 @@ public class MazeClient extends Thread{
 	int boardSize;
 	int nTreasures;
 	int backUpServerID;
+	HashMap <Integer,Player> pList;
 	String host;
 	String myIP;
 	int port;
@@ -40,9 +40,11 @@ public class MazeClient extends Thread{
 		} catch (UnknownHostException e) {
 			System.out.println("Unknown Host");
 		}
+    	    	
     }
 
-    public void run() {
+    @SuppressWarnings("unchecked")
+	public void run() {
 		
 		GameMethod gs = null;
 		GameImplementation mygs = null;
@@ -121,6 +123,44 @@ public class MazeClient extends Thread{
 					}
 				
 				}
+				long waitTime = Long.parseLong(res.get(Constants.TimeLeft).toString());
+				System.out.println("Please wait for "+(int)waitTime/1000+" seconds for game to begin.");
+				try {
+					
+					Thread.sleep(waitTime);
+					
+				} catch (InterruptedException e1) {
+					
+					System.out.println("Cannot sleep the thread");
+				}
+				
+				//Get the Initial Game state 
+				//Loop till you get the Connect Success
+				while(true){
+					
+					try {
+						res = gs.GetInitialGameState();
+					} catch (RemoteException e) {
+						// TODO Auto-generated catch block
+						e.printStackTrace();
+					}
+					
+					msgType = Integer.parseInt(res.get(Constants.MessageType).toString());
+					
+					if(msgType == MessageType.ConnectSuccess){
+						
+						
+						System.out.println("Game Started");
+						mc.gameBoard = (int[][]) res.get(Constants.MessageObject);						
+        				mc.pList = (HashMap<Integer,Player>)res.get(Constants.Players);
+						this.printGameBoard();
+						break;
+						
+					}
+					
+					
+				}
+				
 				
 				break;
 			case MessageType.ConnectError:

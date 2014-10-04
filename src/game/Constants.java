@@ -8,5 +8,7 @@ public class Constants {
 	public static final String BackUpServerID = "BSI";
 	public static final String Treasures = "TR";
 	public static final String Players = "PL";
+	public static final String TimeLeft = "TL";
 	
 }
+
