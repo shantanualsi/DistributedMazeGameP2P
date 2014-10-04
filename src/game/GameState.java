@@ -1,10 +1,13 @@
 package game;
 
+import java.util.HashMap;
+
 public class GameState {
 	private static int gridSize;
 	private static int treasures;
 	private int treasuresRemaining;
 	private int playersConnected;
+	private HashMap<Integer,Integer> playerScores;
 	
 	public static int getGridSize() {
 		return gridSize;
@@ -30,5 +33,14 @@ public class GameState {
 	public void setPlayersConnected(int playersConnected) {
 		this.playersConnected = playersConnected;
 	}
+	public int getPlayerScores(int playerId) {
+		return playerScores.get(playerId);
+	}
+	public void setPlayerScores(int playerId, int playerScore) {
+		this.playerScores.put(playerId, playerScore);
+	}
+	
+	
+	
 	
 }
