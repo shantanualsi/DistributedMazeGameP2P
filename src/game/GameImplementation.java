@@ -174,7 +174,7 @@ public class GameImplementation extends UnicastRemoteObject implements GameMetho
 	}
 	
 	//Connects a client to the game
-	public HashMap<String,Object> ConnectToGame(){
+	public HashMap<String,Object> ConnectToGame(String clientIP,int clientPort){
 		
 		 
 		switch(this.gameInfo){
@@ -196,20 +196,9 @@ public class GameImplementation extends UnicastRemoteObject implements GameMetho
 		
 		if(this.lastId<=this.maxPlayers){
 			
-			Player p = new Player(this.lastId);
-			String clientIP = "";
-			try{
-			
-				clientIP = RemoteServer.getClientHost().toString();
-				
-			}catch(ServerNotActiveException snae){
-				
-				System.out.println("Cannot get client ip address");
-				snae.printStackTrace();
-				
-			}
-			
+			Player p = new Player(this.lastId);			
 			p.setIP(clientIP);
+			p.setPort(clientPort);
 						
 			this.pList.put(this.lastId, p);
 			setRandomPlayerPosition(p);
@@ -265,7 +254,7 @@ public class GameImplementation extends UnicastRemoteObject implements GameMetho
 		p.setyPos(newY);
 		this.gameBoard[curX][curY] = 0;
 		
-		this.printGameBoard();
+		//this.printGameBoard();
 		
 		
 	}
@@ -346,8 +335,9 @@ public class GameImplementation extends UnicastRemoteObject implements GameMetho
 	public boolean startBackUpService(){
 		
 		Registry registry;
+		Player backUpPlayer = this.pList.get(this.backUpServerID);
 		try {
-			registry = LocateRegistry.getRegistry(this.backUpServerID);
+			registry = LocateRegistry.getRegistry(backUpPlayer.getIP(), backUpPlayer.getPort());
 			this.backgs = (GameMethod) registry.lookup("BackUp");
 			System.out.println("Done Handshaking");			
 		} catch (RemoteException e) {
@@ -368,7 +358,7 @@ public class GameImplementation extends UnicastRemoteObject implements GameMetho
 	public void receiveBackUp(int[][] gameBoard,HashMap<Integer,Player> pList ){	
 		this.gameBoard = gameBoard;		
 		this.pList = pList;
-		printGameBoard();
+		//printGameBoard();
 		
 		System.out.println("Received new information - ");
 		

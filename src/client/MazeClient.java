@@ -28,10 +28,13 @@ public class MazeClient extends Thread{
 	int backUpServerID;
 	String host;
 	String myIP;
+	int port;
+	Registry registry;
 	
     public MazeClient(String host) {
     	
     	this.host = host;
+    	this.port = 1099;
     	try {
 			this.myIP = InetAddress.getLocalHost().getHostAddress();			
 		} catch (UnknownHostException e) {
@@ -45,14 +48,32 @@ public class MazeClient extends Thread{
 		GameImplementation mygs = null;
 		int msgType;
 		HashMap<String,Object> res = null;
-		
-		//[TODO] Need a score object
+				
 		
 		MazeClient mc = this;
 		
-		try {
-		    Registry registry = LocateRegistry.getRegistry(mc.host);
-		    gs = (GameMethod) registry.lookup("GameImplementation");
+		
+		//Start client registry
+		
+		while(true){
+			
+			try {
+				this.registry = LocateRegistry.createRegistry(this.port);
+				System.out.println("registry started on "+this.port);
+				break;
+			} catch (RemoteException e) {
+				System.out.println("Cannot start registry on port "+this.port);
+				this.port++;
+				
+			}
+			
+		}
+				
+		
+		try {						
+			//Locate server object
+		    Registry serverRegistry = LocateRegistry.getRegistry(mc.host);
+		    gs = (GameMethod) serverRegistry.lookup("GameImplementation");
 		    
 		    
 		} catch (Exception e) {
@@ -63,7 +84,7 @@ public class MazeClient extends Thread{
 		
 		try{			
 			
-			res = gs.ConnectToGame();			
+			res = gs.ConnectToGame(this.myIP,this.port);			
 			
 		}catch(RemoteException re){
 			
@@ -86,11 +107,10 @@ public class MazeClient extends Thread{
 				//Register my object for RMI
 				if(mc.clientID == mc.backUpServerID){
 					
-					Registry registry;
+					
 					try {
-						mygs = new GameImplementation(this.boardSize,this.nTreasures,this.clientID);
-						registry = LocateRegistry.getRegistry();
-						registry.bind("BackUp",mygs);
+						mygs = new GameImplementation(this.boardSize,this.nTreasures,this.clientID);						
+						this.registry.bind("BackUp",mygs);
 						gs.startBackUpService();
 					} catch (RemoteException e1) {
 						// TODO Auto-generated catch block
@@ -191,10 +211,7 @@ public class MazeClient extends Thread{
 		} catch (IOException e) {
 			System.out.println("Cannot read from standard input");
 			e.printStackTrace();
-		}
-    	
-	    
-    
+		}    		    
     	
 	
     }
@@ -215,26 +232,4 @@ public class MazeClient extends Thread{
     	
     } 
     
-    private void printScoreBoard(HashMap<Integer, Player> pList){
-    	System.out.println("---------------------------------------SCORES--------------------------------------------");
-		System.out.println("Player \t\t Score" );
-		for(Map.Entry<Integer, Player> entry : pList.entrySet()){
-			System.out.println(entry.getKey()+"\t\t"+entry.getValue().getPlayerScore());
-		}
-		System.out.println("------------------------------------------------------------------------------------------");
-		System.out.println("Player "+getWinner(pList)+"wins!!!");
-		System.out.println("------------------------------------------------------------------------------------------");
-    }
-    
-    private int getWinner(HashMap<Integer, Player> pList) {
-		int winnerId=0;
-		int winnerScore=0;
-		for(Map.Entry<Integer, Player> entry: pList.entrySet()){
-			if(entry.getValue().getPlayerScore()> winnerScore){
-				winnerScore = entry.getValue().getPlayerScore();
-				winnerId = entry.getValue().getId();
-			}
-		}
-		return winnerId;
-	}
 }

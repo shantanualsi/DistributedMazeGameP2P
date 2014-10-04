@@ -9,6 +9,7 @@ public class Player implements Serializable{
 	private int yPos;
 	private int id;
 	private String ip;
+	private int port;
 	
 	private static final long serialVersionUID = -4533268491603601249L;
 	 
@@ -62,11 +63,24 @@ public class Player implements Serializable{
 		
 	}
 	
-	public String getIP(String ip) {
+	public String getIP() {
 		
 		return this.ip;
 		
 	}
 
+	public void setPort(int port) {
+		 
+		this.port = port;
+		
+	}
+	
+	public int getPort() {
+		 
+		return this.port;
+		
+	}
+
 
 }
+

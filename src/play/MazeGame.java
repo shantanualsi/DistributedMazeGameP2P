@@ -4,12 +4,12 @@ import client.MazeClient;
 import server.MazeServer;
 
 public class MazeGame {
-	
 
 	
 	public static void main(String[] args){
 				
-		String serverip = "localhost";		
+		String serverip = "localhost";
+		
 		switch(args.length){		
 		
 		//Acting as Client now
