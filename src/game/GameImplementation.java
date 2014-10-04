@@ -39,6 +39,7 @@ public class GameImplementation extends UnicastRemoteObject implements GameMetho
 		this.pList = new HashMap<Integer,Player>();
 		this.maxPlayers = bSize*bSize - 1;
 		this.backUpServerID =backUpServerID;
+		this.gameInfo = GameInfo.Started;
 					
 	}
 	

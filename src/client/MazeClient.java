@@ -17,6 +17,7 @@ import java.rmi.RemoteException;
 import java.rmi.registry.LocateRegistry;
 import java.rmi.registry.Registry;
 import java.util.HashMap;
+import java.util.Map.Entry;
 
 public class MazeClient extends Thread{
 
@@ -218,6 +219,7 @@ public class MazeClient extends Thread{
 						break;
         			case MessageType.MazeObject:    					
         				mc.gameBoard = (int[][]) res.get(Constants.MessageObject);
+        				mc.pList = (HashMap<Integer,Player>)res.get(Constants.Players);
         				int backServerID = Integer.parseInt(res.get(Constants.BackUpServerID).toString());
         				
         				//BackUpServer Changed
@@ -269,7 +271,18 @@ public class MazeClient extends Thread{
 		}
 		
 		System.out.println();
+		printScores();
     	
     } 
+    
+    private void printScores(){
+    	
+    	for(Entry<Integer, Player> p: this.pList.entrySet()){
+    		
+    		System.out.println("Player "+p.getKey()+" : "+p.getValue().getPlayerScore());
+    		
+    	}
+    	
+    }
     
 }
