@@ -119,7 +119,7 @@ public class MazeClient extends Thread{
 			BufferedReader br = new BufferedReader(new InputStreamReader(System.in));
 	    	String text;
 
-    		while(true){
+    		untilGameOver: while(true){
     			
     			text = br.readLine();
     			
@@ -170,15 +170,16 @@ public class MazeClient extends Thread{
         			case MessageType.GameOver:
         				// [TODO] Take object of score and print that
 	    				message = res.get(Constants.MessageObject).toString();
-						System.out.println("Game Over. Thank you for playing...");									
-						break;		
+						System.out.println("Game Over. Thank you for playing...");	
+						//If game gets over client should move out of this while loop
+						break untilGameOver;		
         			default :
         				System.out.println("Unknown response from the server");
         			
         		
         		}
         		
-        		//[TODO] If game gets over client should move out of this while loop
+        		
     			
     			
     		}
