@@ -168,7 +168,8 @@ public class MazeClient extends Thread{
 	    				mc.printGameBoard();
 						break;
         			case MessageType.GameOver:
-        				// [TODO] Take object of score and print that
+        				//Print score board.
+        				gs.getScoreBoard();
 	    				message = res.get(Constants.MessageObject).toString();
 						System.out.println("Game Over. Thank you for playing...");	
 						//If game gets over client should move out of this while loop
