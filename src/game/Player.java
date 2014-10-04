@@ -8,6 +8,7 @@ public class Player implements Serializable{
 	private int xPos;
 	private int yPos;
 	private int id;
+	private String ip;
 	
 	private static final long serialVersionUID = -4533268491603601249L;
 	 
@@ -53,6 +54,18 @@ public class Player implements Serializable{
 
 	public void setxPos(int xPos) {
 		this.xPos = xPos;
+	}
+
+	public void setIP(String ip) {
+
+		this.ip = ip;
+		
+	}
+	
+	public String getIP(String ip) {
+		
+		return this.ip;
+		
 	}
 
 

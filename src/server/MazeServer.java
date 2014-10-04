@@ -11,13 +11,12 @@ public class MazeServer extends Thread{
 	
 	
 	private int gridsize;
-	private int nTreasures;
+	private int nTreasures;	
 
 	public MazeServer(int gridsize,int nTreasures){
 		
 		this.gridsize = gridsize;
-		this.nTreasures = nTreasures;
-			
+		this.nTreasures = nTreasures;					
 		
 	}
 	

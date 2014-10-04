@@ -4,19 +4,20 @@ import client.MazeClient;
 import server.MazeServer;
 
 public class MazeGame {
-			
+	
+
 	
 	public static void main(String[] args){
-		
-		
-		String serverip = "localhost";
+				
+		String serverip = "localhost";		
 		switch(args.length){		
 		
 		//Acting as Client now
-		case 1: serverip = args[0]; 
+		case 1: 				
+				serverip = args[0];
 				break;
 		//Acting as Server now
-		case 2:			
+		case 2:						
 			int gridsize = Integer.parseInt(args[0]);
 			int nTreasures = Integer.parseInt(args[1]);
 			
@@ -33,18 +34,15 @@ public class MazeGame {
 				
 			}
 			
-			startMazeServer(gridsize,nTreasures);
-									
-			
+			startMazeServer(gridsize,nTreasures);															
 			break;
 		default:
 				System.out.println("Usage");
 				System.out.println("play.ClientServer <gridsize> <numberoftreasures>");
-				System.out.println("play.ClientServer IPAddress");
+				System.out.println("play.ClientServer <IPAddress>");
 				System.exit(-1);
 			
 		}
-		
 				
 		startGameClient(serverip);
 		

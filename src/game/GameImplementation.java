@@ -22,18 +22,16 @@ public class GameImplementation extends UnicastRemoteObject implements GameMetho
 	private HashMap <Integer,Player> pList;
 	private int maxPlayers;
 	int lastId = 0;
-	String backUpServerIP;
+	int backUpServerID;
 	GameMethod backgs;
 	
 	
 	GameInfo gameInfo = GameInfo.NotStarted;
 	
 	private static final long serialVersionUID = -4933868291603601249L;
+			
 	
-	String[] msg = new String[2];
-	
-	
-	public GameImplementation(int bSize,int nTreasures,String backUpServerIP) throws RemoteException {
+	public GameImplementation(int bSize,int nTreasures,int backUpServerID) throws RemoteException {
 		super();
  
 		this.boardSize = bSize;		
@@ -41,7 +39,7 @@ public class GameImplementation extends UnicastRemoteObject implements GameMetho
 		this.gameBoard = new int[boardSize][boardSize];	
 		this.pList = new HashMap<Integer,Player>();
 		this.maxPlayers = bSize*bSize - 1;
-		this.backUpServerIP =backUpServerIP;
+		this.backUpServerID =backUpServerID;
 					
 	}
 	
@@ -54,7 +52,7 @@ public class GameImplementation extends UnicastRemoteObject implements GameMetho
 		this.gameBoard = new int[boardSize][boardSize];	
 		this.pList = new HashMap<Integer,Player>();
 		this.maxPlayers = bSize*bSize - 1;
-		this.backUpServerIP = "none";
+		this.backUpServerID = -1;
 		
 		//Initialize GameBoard with all zeros
 		for(int i=0;i<boardSize;i++){
@@ -199,6 +197,20 @@ public class GameImplementation extends UnicastRemoteObject implements GameMetho
 		if(this.lastId<=this.maxPlayers){
 			
 			Player p = new Player(this.lastId);
+			String clientIP = "";
+			try{
+			
+				clientIP = RemoteServer.getClientHost().toString();
+				
+			}catch(ServerNotActiveException snae){
+				
+				System.out.println("Cannot get client ip address");
+				snae.printStackTrace();
+				
+			}
+			
+			p.setIP(clientIP);
+						
 			this.pList.put(this.lastId, p);
 			setRandomPlayerPosition(p);
 			HashMap <String,Object> hm = createMessage(MessageType.ConnectSuccess,this.lastId);
@@ -206,18 +218,16 @@ public class GameImplementation extends UnicastRemoteObject implements GameMetho
 			
 			//Set the second person to connect as backup server
 			if(this.lastId == 2){
-				
-				try{
-					this.backUpServerIP = RemoteServer.getClientHost();
-				} catch (ServerNotActiveException e) {
-					
-					System.out.println("Error Setting up remote server ip");
-				}						
+				this.backUpServerID  = 2;										
 			}
+			
+			
 			
 			hm.put(Constants.BoardSize, this.boardSize);
 			hm.put(Constants.Treasures, this.numberOfTreasures);
-			hm.put(Constants.BackUpServerIP,this.backUpServerIP);
+			hm.put(Constants.BackUpServerID,this.backUpServerID);
+			hm.put(Constants.Players,this.pList);
+			
 			return hm;
 			
 		}else{
@@ -295,7 +305,8 @@ public class GameImplementation extends UnicastRemoteObject implements GameMetho
 				break;
 			case Direction.STAY:
 				HashMap<String,Object> hm = createMessage(MessageType.MazeObject,this.gameBoard);
-				hm.put(Constants.BackUpServerIP,this.backUpServerIP);
+				hm.put(Constants.BackUpServerID,this.backUpServerID);
+				hm.put(Constants.Players,this.pList);
 				return hm;
 			default:
 				return createMessage(MessageType.Error,"Unknown move");
@@ -320,7 +331,8 @@ public class GameImplementation extends UnicastRemoteObject implements GameMetho
 		}
 		
 		HashMap<String,Object> hm =  createMessage(MessageType.MazeObject,this.gameBoard);
-		hm.put(Constants.BackUpServerIP,this.backUpServerIP);
+		hm.put(Constants.BackUpServerID,this.backUpServerID);
+		hm.put(Constants.Players,this.pList);
 		try {
 			this.backgs.receiveBackUp(this.gameBoard, this.pList);
 		} catch (RemoteException e) {
@@ -335,7 +347,7 @@ public class GameImplementation extends UnicastRemoteObject implements GameMetho
 		
 		Registry registry;
 		try {
-			registry = LocateRegistry.getRegistry(this.backUpServerIP);
+			registry = LocateRegistry.getRegistry(this.backUpServerID);
 			this.backgs = (GameMethod) registry.lookup("BackUp");
 			System.out.println("Done Handshaking");			
 		} catch (RemoteException e) {

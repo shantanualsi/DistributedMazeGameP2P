@@ -17,7 +17,6 @@ import java.rmi.RemoteException;
 import java.rmi.registry.LocateRegistry;
 import java.rmi.registry.Registry;
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.Map;
 
 public class MazeClient extends Thread{
@@ -26,7 +25,7 @@ public class MazeClient extends Thread{
 	int gameBoard[][];
 	int boardSize;
 	int nTreasures;
-	String backUpServerIP;
+	int backUpServerID;
 	String host;
 	String myIP;
 	
@@ -34,8 +33,7 @@ public class MazeClient extends Thread{
     	
     	this.host = host;
     	try {
-			this.myIP = InetAddress.getLocalHost().getHostAddress();
-			System.out.println(this.myIP);
+			this.myIP = InetAddress.getLocalHost().getHostAddress();			
 		} catch (UnknownHostException e) {
 			System.out.println("Unknown Host");
 		}
@@ -81,16 +79,16 @@ public class MazeClient extends Thread{
 			case MessageType.ConnectSuccess:
 				mc.clientID = Integer.parseInt(res.get(Constants.MessageObject).toString());
 				mc.boardSize = Integer.parseInt(res.get(Constants.BoardSize).toString());
-				mc.backUpServerIP = res.get(Constants.BackUpServerIP).toString();
+				mc.backUpServerID = Integer.parseInt(res.get(Constants.BackUpServerID).toString());
 				System.out.println("Connected with id "+ mc.clientID);
 				
 				//If I am the backup server 
 				//Register my object for RMI
-				if(mc.myIP.equals(mc.backUpServerIP)){
+				if(mc.clientID == mc.backUpServerID){
 					
 					Registry registry;
 					try {
-						mygs = new GameImplementation(this.boardSize,this.nTreasures,this.myIP);
+						mygs = new GameImplementation(this.boardSize,this.nTreasures,this.clientID);
 						registry = LocateRegistry.getRegistry();
 						registry.bind("BackUp",mygs);
 						gs.startBackUpService();
@@ -160,19 +158,17 @@ public class MazeClient extends Thread{
 						break;
         			case MessageType.MazeObject:    					
         				mc.gameBoard = (int[][]) res.get(Constants.MessageObject);
-        				String backServerIP = res.get(Constants.BackUpServerIP).toString();
+        				int backServerID = Integer.parseInt(res.get(Constants.BackUpServerID).toString());
         				
         				//BackUpServer Changed
-        				if(!backServerIP.equals(mc.backUpServerIP)){
+        				if(backServerID != mc.backUpServerID){
         					
         					//[TODO] Handle Backup server change here
         					
         				}
 	    				mc.printGameBoard();
 						break;
-        			case MessageType.GameOver:
-        				//Print score board.
-        				printScoreBoard(gs.getPList());
+        			case MessageType.GameOver:        				
 	    				message = res.get(Constants.MessageObject).toString();
 						System.out.println("Game Over. Thank you for playing...");	
 						//If game gets over client should move out of this while loop
