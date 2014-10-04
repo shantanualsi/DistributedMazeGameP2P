@@ -353,8 +353,8 @@ public class GameImplementation extends UnicastRemoteObject implements GameMetho
 		Player backUpPlayer = this.pList.get(this.backUpServerID);
 		try {
 			registry = LocateRegistry.getRegistry(backUpPlayer.getIP(), backUpPlayer.getPort());
-			this.backgs = (GameMethod) registry.lookup("BackUp");
-			System.out.println("Done Handshaking");			
+			this.backgs = (GameMethod) registry.lookup("GameImplementation");
+			System.out.println("Started BackUpService");			
 		} catch (RemoteException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();

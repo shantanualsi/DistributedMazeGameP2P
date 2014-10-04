@@ -31,6 +31,7 @@ public class MazeClient extends Thread{
 	String myIP;
 	int port;
 	Registry registry;
+	Registry serverRegistry;
 	
     public MazeClient(String host) {
     	
@@ -43,39 +44,103 @@ public class MazeClient extends Thread{
 		}
     	    	
     }
-
-    @SuppressWarnings("unchecked")
+    
+	@SuppressWarnings("unchecked")
 	public void run() {
 		
-		GameMethod gs = null;
-		GameImplementation mygs = null;
+		GameMethod gs = null;		
 		int msgType;
 		HashMap<String,Object> res = null;
 				
 		
 		MazeClient mc = this;
 		
+		//Start the client registry
+		startClientRegistry();
 		
-		//Start client registry
+		//Get the server registry Object
+		gs = getServerRegistryObject();
 		
-		while(true){
+		//Connect to the server
+		connectToServer(gs);
+	    	    			
+    	
+    	try{
+    		
+			BufferedReader br = new BufferedReader(new InputStreamReader(System.in));
+	    	String text;
+
+    		while(true){
+    			
+    			text = br.readLine();
+    			
+    			if(text.length() == 0){
+    				continue;
+    			}
+    			
+    			
+    			res = this.makeAMove(text, gs);
+    			
+    			msgType = Integer.parseInt(res.get(Constants.MessageType).toString());
+        		String message = null;
+        		
+        		switch(msgType){
+        			
+        			case MessageType.Error:
+						// Get the error message and print it
+						message = res.get(Constants.MessageObject).toString();
+						System.out.println(message);
+						break;
+        			case MessageType.MazeObject:    					
+        				mc.gameBoard = (int[][]) res.get(Constants.MessageObject);
+        				mc.pList = (HashMap<Integer,Player>)res.get(Constants.Players);
+        				int backServerID = Integer.parseInt(res.get(Constants.BackUpServerID).toString());
+        				
+        				//BackUpServer Changed
+        				if(backServerID != mc.backUpServerID){
+        					
+        					//[TODO] Handle Backup server change here
+        					
+        				}
+	    				mc.printGameBoard();
+						break;
+        			case MessageType.GameOver:        				
+	    				message = res.get(Constants.MessageObject).toString();
+						System.out.println("Game Over. Thank you for playing...");	
+						//If game gets over client should move out of this while loop
+						break;
+        			default :
+        				System.out.println("Unknown response from the server");
+        			
+        		
+        		}
+        		
+        		
+    			
+    			
+    		}
+    			
+    				    		
+    	}catch(RemoteException re){
+			System.out.println("Server Down");
+												
 			
-			try {
-				this.registry = LocateRegistry.createRegistry(this.port);
-				System.out.println("registry started on "+this.port);
-				break;
-			} catch (RemoteException e) {
-				System.out.println("Cannot start registry on port "+this.port);
-				this.port++;
-				
-			}
-			
-		}
-				
-		
-		try {						
+		} catch (IOException e) {
+			System.out.println("Cannot read from standard input");
+			e.printStackTrace();
+		}    		    
+    	
+	
+    }
+    
+    private GameMethod getServerRegistryObject(){
+    	
+    	GameMethod gs = null;
+    	MazeClient mc = this;
+    	
+    	try {						
 			//Locate server object
-		    Registry serverRegistry = LocateRegistry.getRegistry(mc.host);
+		    this.serverRegistry = LocateRegistry.getRegistry(mc.host);
 		    gs = (GameMethod) serverRegistry.lookup("GameImplementation");
 		    
 		    
@@ -83,8 +148,18 @@ public class MazeClient extends Thread{
 		    System.err.println("Client exception: " + e.toString());
 		    e.printStackTrace();
 		}
-		
-		
+    	
+    	return gs;
+    }
+    
+    
+    @SuppressWarnings("unchecked")
+	private void connectToServer(GameMethod gs){
+    	    	
+		int msgType;
+		HashMap<String,Object> res = null;
+		MazeClient mc = this; 
+
 		try{			
 			
 			res = gs.ConnectToGame(this.myIP,this.port);			
@@ -110,19 +185,8 @@ public class MazeClient extends Thread{
 				//Register my object for RMI
 				if(mc.clientID == mc.backUpServerID){
 					
+					startBackUp(gs);
 					
-					try {
-						mygs = new GameImplementation(this.boardSize,this.nTreasures,this.clientID);						
-						this.registry.bind("BackUp",mygs);
-						gs.startBackUpService();
-					} catch (RemoteException e1) {
-						// TODO Auto-generated catch block
-						e1.printStackTrace();
-					} catch (AlreadyBoundException e) {
-						// TODO Auto-generated catch block
-						e.printStackTrace();
-					}
-				
 				}
 				long waitTime = Long.parseLong(res.get(Constants.TimeLeft).toString());
 				System.out.println("Please wait for "+(int)waitTime/1000+" seconds for game to begin.");
@@ -174,88 +238,70 @@ public class MazeClient extends Thread{
 				System.exit(-1);										
 		
 		}	    	    
-	    	    			
     	
-    	try{
-    		
-			BufferedReader br = new BufferedReader(new InputStreamReader(System.in));
-	    	String text;
-
-    		untilGameOver: while(true){
-    			
-    			text = br.readLine();
-    			
-    			if(text.length() == 0){
-    				continue;
-    			}
-    			
-    			switch(text.toUpperCase().charAt(0)){
-    				
-    			case 'W': res = gs.move(mc.clientID,Direction.UP);
-    				break;
-    			case 'A': res = gs.move(mc.clientID,Direction.LEFT);
-					break;
-    			case 'S': res = gs.move(mc.clientID,Direction.DOWN);
-					break;
-    			case 'D': res = gs.move(mc.clientID,Direction.RIGHT);
-    				break;
-    			case 'E': res = gs.move(mc.clientID,Direction.STAY);
-					break;
-				default:
-					System.out.println("Invalid Move!!!");
-    			
-    			}
-    			
-    			
-    			msgType = Integer.parseInt(res.get(Constants.MessageType).toString());
-        		String message = null;
-        		
-        		switch(msgType){
-        			
-        			case MessageType.Error:
-						// Get the error message and print it
-						message = res.get(Constants.MessageObject).toString();
-						System.out.println(message);
-						break;
-        			case MessageType.MazeObject:    					
-        				mc.gameBoard = (int[][]) res.get(Constants.MessageObject);
-        				mc.pList = (HashMap<Integer,Player>)res.get(Constants.Players);
-        				int backServerID = Integer.parseInt(res.get(Constants.BackUpServerID).toString());
-        				
-        				//BackUpServer Changed
-        				if(backServerID != mc.backUpServerID){
-        					
-        					//[TODO] Handle Backup server change here
-        					
-        				}
-	    				mc.printGameBoard();
-						break;
-        			case MessageType.GameOver:        				
-	    				message = res.get(Constants.MessageObject).toString();
-						System.out.println("Game Over. Thank you for playing...");	
-						//If game gets over client should move out of this while loop
-						break untilGameOver;		
-        			default :
-        				System.out.println("Unknown response from the server");
-        			
-        		
-        		}
-        		
-        		
-    			
-    			
-    		}
-    			
-    				    		
-    	}catch(RemoteException re){
-			
-			
-		} catch (IOException e) {
-			System.out.println("Cannot read from standard input");
+    }
+    
+    private void startBackUp(GameMethod gs){
+    	
+    	GameImplementation mygs = null;
+    	
+    	try {
+			mygs = new GameImplementation(this.boardSize,this.nTreasures,this.clientID);						
+			this.registry.bind("GameImplementation",mygs);
+			gs.startBackUpService();
+		} catch (RemoteException e1) {
+			// TODO Auto-generated catch block
+			e1.printStackTrace();
+		} catch (AlreadyBoundException e) {
+			// TODO Auto-generated catch block
 			e.printStackTrace();
-		}    		    
-    	
+		}
 	
+    }
+    
+    private void startClientRegistry(){
+    	
+		//Start client registry		
+		while(true){
+			
+			try {
+				this.registry = LocateRegistry.createRegistry(this.port);
+				System.out.println("registry started on "+this.port);
+				break;
+			} catch (RemoteException e) {
+				System.out.println("Cannot start registry on port "+this.port);
+				this.port++;
+				
+			}
+			
+		}
+			
+    	
+    }
+    
+    private HashMap<String,Object> makeAMove(String text,GameMethod gs) throws RemoteException{
+    	
+    	MazeClient mc = this;
+    	HashMap<String,Object> res = null;
+    	
+    	switch(text.toUpperCase().charAt(0)){
+		
+			case 'W': res = gs.move(mc.clientID,Direction.UP);
+				break;
+			case 'A': res = gs.move(mc.clientID,Direction.LEFT);
+				break;
+			case 'S': res = gs.move(mc.clientID,Direction.DOWN);
+				break;
+			case 'D': res = gs.move(mc.clientID,Direction.RIGHT);
+				break;
+			case 'E': res = gs.move(mc.clientID,Direction.STAY);
+				break;
+			default:
+				System.out.println("Invalid Move!!!");
+		
+		}
+    	
+    	return res;
     }
     
     
