@@ -271,7 +271,7 @@ public class GameImplementation extends UnicastRemoteObject implements GameMetho
 		return winnerId;
 	}
 	
-	private void printScoreBoard(){
+	public void getScoreBoard(){
 		System.out.println("---------------------------------------SCORES--------------------------------------------");
 		System.out.println("Player \t\t Score" );
 		
@@ -292,7 +292,6 @@ public class GameImplementation extends UnicastRemoteObject implements GameMetho
 			
 		}else if(this.gameInfo == GameInfo.GameOver){
 			//[TODO] Return the final score to print who won the game 
-			printScoreBoard();
 			return createMessage(MessageType.GameOver,this.gameBoard);
 		}
 				
