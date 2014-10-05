@@ -22,6 +22,7 @@ public class GameImplementation extends UnicastRemoteObject implements GameMetho
 	int lastId = 0;
 	int backUpServerID;
 	long startTime = 0; 
+	int serverID = 1;
 	GameMethod backgs;
 	
 	
@@ -30,15 +31,19 @@ public class GameImplementation extends UnicastRemoteObject implements GameMetho
 	private static final long serialVersionUID = -4933868291603601249L;
 			
 	
-	public GameImplementation(int bSize,int nTreasures,int backUpServerID) throws RemoteException {
+	public GameImplementation(int bSize,int nTreasures,int clientID,int backUpServerID,HashMap<Integer,Player> pList) throws RemoteException {
 		super();
  
 		this.boardSize = bSize;		
 		this.numberOfTreasures = nTreasures;
-		this.gameBoard = new int[boardSize][boardSize];	
-		this.pList = new HashMap<Integer,Player>();
+		this.gameBoard = new int[boardSize][boardSize];
+		
+		this.pList = pList;
+		
+		
 		this.maxPlayers = bSize*bSize - 1;
 		this.backUpServerID =backUpServerID;
+		this.serverID = clientID;
 		this.gameInfo = GameInfo.Started;
 					
 	}
@@ -53,6 +58,7 @@ public class GameImplementation extends UnicastRemoteObject implements GameMetho
 		this.pList = new HashMap<Integer,Player>();
 		this.maxPlayers = bSize*bSize - 1;
 		this.backUpServerID = -1;
+		this.serverID = 1;
 		
 		//Initialize GameBoard with all zeros
 		for(int i=0;i<boardSize;i++){
@@ -208,7 +214,7 @@ public class GameImplementation extends UnicastRemoteObject implements GameMetho
 			hm.put(Constants.TimeLeft, this.startTime+20000 - System.currentTimeMillis());			
 			//Set the second person to connect as backup server
 			if(this.lastId == 2){
-				this.backUpServerID  = 2;										
+				this.backUpServerID  = 2;				
 			}						
 			hm.put(Constants.BackUpServerID,this.backUpServerID);
 			hm.put(Constants.BoardSize, this.boardSize);
@@ -227,7 +233,7 @@ public class GameImplementation extends UnicastRemoteObject implements GameMetho
 	
 	
 	//Connects a client to the game
-	public HashMap<String,Object> GetInitialGameState(){
+	public HashMap<String,Object> GetInitialGameState(int id){
 		
 		HashMap <String,Object> hm;
 		
@@ -236,6 +242,10 @@ public class GameImplementation extends UnicastRemoteObject implements GameMetho
 			hm = createMessage(MessageType.Error,"Still Waiting");
 			
 		}else{
+			
+			if(this.backUpServerID == id){
+				this.updateBackUpObject();
+			}
 			
 			hm = createMessage(MessageType.ConnectSuccess,this.gameBoard);
 			hm.put(Constants.Players,this.pList);
@@ -282,6 +292,20 @@ public class GameImplementation extends UnicastRemoteObject implements GameMetho
 	//Makes the move given the is of player and direction
 	public HashMap<String,Object> move(int id,int dir){
 		
+		
+		/*Boolean sendBackUp = true;*/
+		
+		//Check if this request is actually received by the backup server
+		//This essentially means that our main server is down
+		//We need to create a new backupserver here
+		if(this.serverID == this.backUpServerID){
+						
+			this.backUpServerID++;
+			this.updateBackUpObject();
+			
+			
+		}				
+		
 		if(this.gameInfo == GameInfo.Waiting){
 			//[TODO] It should return the time, how long should the client wait
 			return createMessage(MessageType.Error,"Please wait for game to start..");
@@ -325,7 +349,7 @@ public class GameImplementation extends UnicastRemoteObject implements GameMetho
 				makeMove(p,newX,newY);
 				
 				//Check game over condition here
-				if(numberOfTreasures == 0){
+				if(this.numberOfTreasures == 0){
 					this.gameInfo = GameInfo.GameOver;					
 					return createMessage(MessageType.GameOver,this.gameBoard);
 				}
@@ -337,17 +361,52 @@ public class GameImplementation extends UnicastRemoteObject implements GameMetho
 		HashMap<String,Object> hm =  createMessage(MessageType.MazeObject,this.gameBoard);
 		hm.put(Constants.BackUpServerID,this.backUpServerID);
 		hm.put(Constants.Players,this.pList);
+		hm.put(Constants.Treasures,this.numberOfTreasures);
+							
 		try {
-			this.backgs.receiveBackUp(this.gameBoard, this.pList);
+			this.backgs.receiveBackUp(this.gameBoard, this.pList,this.numberOfTreasures,this.backUpServerID);
 		} catch (RemoteException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
+		
+			
+		
+		
 		return hm;
 	}
 	
+	
+	public void updateBackUpObject(){
+		
+		Registry registry;
+		
+		//Keep finding and updating the backup
+		while(true){
+		
+			Player backUpPlayer = this.pList.get(this.backUpServerID);
+			try {
+				registry = LocateRegistry.getRegistry(backUpPlayer.getIP(), backUpPlayer.getPort());
+				this.backgs = (GameMethod) registry.lookup("GameImplementation");
+				System.out.println("Updated BackUp Object");
+				System.out.println("Player "+this.backUpServerID+" is now backup.");
+				break;
+			} catch (RemoteException e) {
+				this.backUpServerID++;
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			} catch (NotBoundException e) {
+				// TODO Auto-generated catch block				
+				e.printStackTrace();
+				break;
+			}
+			  
+		}
+		
+	}
+	
 	//Initializes the BackUpService Object
-	public boolean startBackUpService(){
+	/*public boolean startBackUpService(){
 		
 		Registry registry;
 		Player backUpPlayer = this.pList.get(this.backUpServerID);
@@ -367,12 +426,14 @@ public class GameImplementation extends UnicastRemoteObject implements GameMetho
 		
 		return true;
 		
-	}
+	}*/
 	
 	//[TODO] Recreate the current GameImplementation Object here
-	public void receiveBackUp(int[][] gameBoard,HashMap<Integer,Player> pList ){	
+	public void receiveBackUp(int[][] gameBoard,HashMap<Integer,Player> pList,int numberOfTreasures,int backUpServerID){	
 		this.gameBoard = gameBoard;		
 		this.pList = pList;
+		this.numberOfTreasures = numberOfTreasures;
+		this.backUpServerID = backUpServerID;
 		//printGameBoard();
 		
 		System.out.println("Received new information - ");
