@@ -10,7 +10,8 @@ import java.util.Random;
 
 import server.WaitConnect;
 
-//import server.WaitConnect;
+
+//[TODO] Add synchronization
 
 public class GameImplementation extends UnicastRemoteObject implements GameMethod{
 
