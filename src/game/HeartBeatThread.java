@@ -1,21 +1,47 @@
 package game;
-import java.net.ConnectException;
+
 import java.rmi.RemoteException;
-import java.rmi.registry.Registry;
+
 
 public class HeartBeatThread extends Thread {
-	int backupId = 0;
-	GameImplementation gi;
-	GameMethod gs;
 	
-	public HeartBeatThread(GameImplementation gi,GameMethod gs){
-		this.gi = gi;;
-		this.gs = gs;
+	GameMethod backObj;
+	GameImplementation gi;
+	
+	public HeartBeatThread(GameMethod backObj,GameImplementation gi){
+		
+		this.backObj = backObj;		
+		this.gi = gi;
+		
 	}
 	
-	public void run(){
+	public void run(){				
 		
-		try {
+		System.out.println("Heartbeat thread started");
+		while(true){
+			
+			try{
+				
+				this.backObj.HeartBeat();
+				
+			}catch(RemoteException e){
+				
+				this.backObj = gi.updateBackUpObject();
+			}
+			
+			try{
+				
+				Thread.sleep(2000);
+				
+			}catch(Exception e){
+				
+				System.out.println("Some exception occured while sleeping heartbeat thread");
+			}
+			
+			
+		}
+		
+		/*try {
 			System.out.println("Starting heartbeat"); 
 			while(true){
 				//Send request to Backup
@@ -31,6 +57,6 @@ public class HeartBeatThread extends Thread {
 		}catch (InterruptedException ie) {		
 			// TODO Auto-generated catch block
 			ie.printStackTrace();
-		}
+		}*/
 	}
 }

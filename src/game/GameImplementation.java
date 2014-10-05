@@ -23,11 +23,11 @@ public class GameImplementation extends UnicastRemoteObject implements GameMetho
 	int backUpServerID;
 	long startTime = 0; 
 	int serverID = 1;
-	GameMethod backgs;
+	GameMethod backgs;	
 	
 	
 	GameInfo gameInfo = GameInfo.NotStarted;
-	HeartBeatThread hbThread = new HeartBeatThread(this,this.backgs);
+	
 	
 	private static final long serialVersionUID = -4933868291603601249L;
 			
@@ -245,6 +245,7 @@ public class GameImplementation extends UnicastRemoteObject implements GameMetho
 			
 			if(this.backUpServerID == id){
 				this.updateBackUpObject();
+				HeartBeatThread hbThread = new HeartBeatThread(this.backgs,this);
 				hbThread.start();
 			}
 			
@@ -268,8 +269,8 @@ public class GameImplementation extends UnicastRemoteObject implements GameMetho
 		
 	}
 	
-	public void handleHeartBeat(){
-		System.out.println(".");
+	public void HeartBeat(){
+		System.out.print(".");
 	}
 	
 	//Makes the actual move
@@ -305,8 +306,8 @@ public class GameImplementation extends UnicastRemoteObject implements GameMetho
 		if(this.serverID == this.backUpServerID){				
 			this.backUpServerID++;
 			this.updateBackUpObject();
+			HeartBeatThread hbThread = new HeartBeatThread(this.backgs,this);
 			hbThread.start();
-			
 			
 		}				
 		
@@ -341,6 +342,7 @@ public class GameImplementation extends UnicastRemoteObject implements GameMetho
 				hm = createMessage(MessageType.MazeObject,this.gameBoard);
 				hm.put(Constants.BackUpServerID,this.backUpServerID);
 				hm.put(Constants.Players,this.pList);
+				hm.put(Constants.Treasures,this.numberOfTreasures);
 				return hm;
 			default:
 				return createMessage(MessageType.Error,"Unknown move");
@@ -386,7 +388,7 @@ public class GameImplementation extends UnicastRemoteObject implements GameMetho
 	}
 	
 	
-	public void updateBackUpObject(){
+	public GameMethod updateBackUpObject(){
 		
 		Registry registry;
 		
@@ -410,6 +412,8 @@ public class GameImplementation extends UnicastRemoteObject implements GameMetho
 			}
 			  
 		}
+		
+		return this.backgs;
 		
 	}
 		
