@@ -289,10 +289,7 @@ public class GameImplementation extends UnicastRemoteObject implements GameMetho
 	
 	
 	//Makes the move given the is of player and direction
-	public HashMap<String,Object> move(int id,int dir){
-		
-		
-		/*Boolean sendBackUp = true;*/
+	public HashMap<String,Object> move(int id,int dir){			
 		
 		//Check if this request is actually received by the backup server
 		//This essentially means that our main server is down
@@ -402,30 +399,7 @@ public class GameImplementation extends UnicastRemoteObject implements GameMetho
 		}
 		
 	}
-	
-	//Initializes the BackUpService Object
-	/*public boolean startBackUpService(){
 		
-		Registry registry;
-		Player backUpPlayer = this.pList.get(this.backUpServerID);
-		try {
-			registry = LocateRegistry.getRegistry(backUpPlayer.getIP(), backUpPlayer.getPort());
-			this.backgs = (GameMethod) registry.lookup("GameImplementation");
-			System.out.println("Started BackUpService");			
-		} catch (RemoteException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		} catch (NotBoundException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
-		  
-		 
-		
-		return true;
-		
-	}*/
-	
 	//[TODO] Recreate the current GameImplementation Object here
 	public void receiveBackUp(int[][] gameBoard,HashMap<Integer,Player> pList,int numberOfTreasures,int backUpServerID){	
 		this.gameBoard = gameBoard;		
