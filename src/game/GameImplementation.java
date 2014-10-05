@@ -394,7 +394,7 @@ public class GameImplementation extends UnicastRemoteObject implements GameMetho
 		
 		//Keep finding and updating the backup
 		while(true){
-		
+			//[TODO] break out of this loop if it exceeds the player limit
 			Player backUpPlayer = this.pList.get(this.backUpServerID);
 			try {
 				registry = LocateRegistry.getRegistry(backUpPlayer.getIP(), backUpPlayer.getPort());
