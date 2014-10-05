@@ -27,6 +27,7 @@ public class GameImplementation extends UnicastRemoteObject implements GameMetho
 	
 	
 	GameInfo gameInfo = GameInfo.NotStarted;
+	HeartBeatThread hbThread = new HeartBeatThread(this,this.backgs);
 	
 	private static final long serialVersionUID = -4933868291603601249L;
 			
@@ -214,7 +215,7 @@ public class GameImplementation extends UnicastRemoteObject implements GameMetho
 			hm.put(Constants.TimeLeft, this.startTime+20000 - System.currentTimeMillis());			
 			//Set the second person to connect as backup server
 			if(this.lastId == 2){
-				this.backUpServerID  = 2;				
+				this.backUpServerID  = 2;
 			}						
 			hm.put(Constants.BackUpServerID,this.backUpServerID);
 			hm.put(Constants.BoardSize, this.boardSize);
@@ -245,6 +246,7 @@ public class GameImplementation extends UnicastRemoteObject implements GameMetho
 			
 			if(this.backUpServerID == id){
 				this.updateBackUpObject();
+				hbThread.start();
 			}
 			
 			hm = createMessage(MessageType.ConnectSuccess,this.gameBoard);
@@ -265,6 +267,10 @@ public class GameImplementation extends UnicastRemoteObject implements GameMetho
 		return hm;
 		
 		
+	}
+	
+	public void handleHeartBeat(){
+		System.out.println(".");
 	}
 	
 	//Makes the actual move
@@ -298,10 +304,10 @@ public class GameImplementation extends UnicastRemoteObject implements GameMetho
 		//Check if this request is actually received by the backup server
 		//This essentially means that our main server is down
 		//We need to create a new backupserver here
-		if(this.serverID == this.backUpServerID){
-						
+		if(this.serverID == this.backUpServerID){				
 			this.backUpServerID++;
 			this.updateBackUpObject();
+			hbThread.start();
 			
 			
 		}				
