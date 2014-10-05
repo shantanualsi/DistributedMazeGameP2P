@@ -291,6 +291,8 @@ public class GameImplementation extends UnicastRemoteObject implements GameMetho
 	//Makes the move given the is of player and direction
 	public HashMap<String,Object> move(int id,int dir){			
 		
+		HashMap<String,Object> hm;
+		
 		//Check if this request is actually received by the backup server
 		//This essentially means that our main server is down
 		//We need to create a new backupserver here
@@ -307,8 +309,10 @@ public class GameImplementation extends UnicastRemoteObject implements GameMetho
 			return createMessage(MessageType.Error,"Please wait for game to start..");
 			
 		}else if(this.gameInfo == GameInfo.GameOver){
-			//[TODO] Return the final score to print who won the game 
-			return createMessage(MessageType.GameOver,this.gameBoard);
+ 
+			hm = createMessage(MessageType.GameOver,this.gameBoard);
+			hm.put(Constants.Players, this.pList);
+			return hm;
 		}
 				
 		Player p = this.pList.get(id);
@@ -328,7 +332,7 @@ public class GameImplementation extends UnicastRemoteObject implements GameMetho
 			case Direction.RIGHT: newY += 1;
 				break;
 			case Direction.STAY:
-				HashMap<String,Object> hm = createMessage(MessageType.MazeObject,this.gameBoard);
+				hm = createMessage(MessageType.MazeObject,this.gameBoard);
 				hm.put(Constants.BackUpServerID,this.backUpServerID);
 				hm.put(Constants.Players,this.pList);
 				return hm;
@@ -346,15 +350,18 @@ public class GameImplementation extends UnicastRemoteObject implements GameMetho
 				
 				//Check game over condition here
 				if(this.numberOfTreasures == 0){
-					this.gameInfo = GameInfo.GameOver;					
-					return createMessage(MessageType.GameOver,this.gameBoard);
+					this.gameInfo = GameInfo.GameOver;
+					 
+					hm = createMessage(MessageType.GameOver,this.gameBoard);
+					hm.put(Constants.Players, this.pList);
+					return hm;
 				}
 				
 				
 			}
 		}
 		
-		HashMap<String,Object> hm =  createMessage(MessageType.MazeObject,this.gameBoard);
+		hm =  createMessage(MessageType.MazeObject,this.gameBoard);
 		hm.put(Constants.BackUpServerID,this.backUpServerID);
 		hm.put(Constants.Players,this.pList);
 		hm.put(Constants.Treasures,this.numberOfTreasures);
@@ -362,7 +369,7 @@ public class GameImplementation extends UnicastRemoteObject implements GameMetho
 		try {
 			this.backgs.receiveBackUp(this.gameBoard, this.pList,this.numberOfTreasures,this.backUpServerID);
 		} catch (RemoteException e) {
-			// TODO Auto-generated catch block
+			
 			e.printStackTrace();
 		}
 		
@@ -391,7 +398,7 @@ public class GameImplementation extends UnicastRemoteObject implements GameMetho
 				System.out.println("Player "+this.backUpServerID+" is down");
 				this.backUpServerID++;
 			} catch (NotBoundException e) {
-				// TODO Auto-generated catch block				
+				
 				e.printStackTrace();
 				break;
 			}
@@ -400,7 +407,7 @@ public class GameImplementation extends UnicastRemoteObject implements GameMetho
 		
 	}
 		
-	//[TODO] Recreate the current GameImplementation Object here
+
 	public void receiveBackUp(int[][] gameBoard,HashMap<Integer,Player> pList,int numberOfTreasures,int backUpServerID){	
 		this.gameBoard = gameBoard;		
 		this.pList = pList;
@@ -408,7 +415,7 @@ public class GameImplementation extends UnicastRemoteObject implements GameMetho
 		this.backUpServerID = backUpServerID;
 		//printGameBoard();
 		
-		System.out.println("Received new information - ");
+		System.out.println("Received backup information.");
 		
 	}
 }

@@ -13,7 +13,6 @@ import java.io.InputStreamReader;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.rmi.AlreadyBoundException;
-import java.net.ConnectException;
 import java.rmi.RemoteException;
 import java.rmi.registry.LocateRegistry;
 import java.rmi.registry.Registry;
@@ -70,7 +69,7 @@ public class MazeClient extends Thread{
 		this.joinGame(gs);				
 	    	    			
 		this.getUserInput(gs);
-	
+				
     }
 	
 	
@@ -78,7 +77,7 @@ public class MazeClient extends Thread{
 		
 		HashMap<String,Object> res = null;
 		String text = "";
-    	
+    	Boolean act = true;
     	while(true){
     			    			
     		try{
@@ -96,7 +95,11 @@ public class MazeClient extends Thread{
     			//If result is not null
     			if(!(res == null)){
     				
-    				takeActionOnResult(res,gs);
+    				act = takeActionOnResult(res,gs);
+    				
+    				if(!act){
+    					break;
+    				}
     			}
     			
     				    		
@@ -126,7 +129,12 @@ public class MazeClient extends Thread{
 
 					
 				}
-				takeActionOnResult(res,gs);												
+				
+				act = takeActionOnResult(res,gs);
+				
+				if(!act){
+					break;
+				}
 				
 			} catch (IOException e) {
 				System.out.println("Cannot read from standard input");
@@ -176,7 +184,7 @@ public class MazeClient extends Thread{
 				mc.clientID = Integer.parseInt(res.get(Constants.MessageObject).toString());
 				mc.boardSize = Integer.parseInt(res.get(Constants.BoardSize).toString());
 				mc.backUpServerID = Integer.parseInt(res.get(Constants.BackUpServerID).toString());
-				System.out.println("Connected with id "+ mc.clientID);
+				System.out.println("You are Player "+ mc.clientID);
 
 				
 				//Register My GameImplementation 
@@ -206,8 +214,7 @@ public class MazeClient extends Thread{
 					
 					msgType = Integer.parseInt(res.get(Constants.MessageType).toString());
 					
-					if(msgType == MessageType.ConnectSuccess){
-						
+					if(msgType == MessageType.ConnectSuccess){						
 						
 						System.out.println("Game Started");
 						mc.gameBoard = (int[][]) res.get(Constants.MessageObject);						
@@ -219,8 +226,7 @@ public class MazeClient extends Thread{
 					
 					
 				}
-				
-				
+								
 				break;
 			case MessageType.ConnectError:
 				String msg =res.get(Constants.MessageObject).toString(); 
@@ -256,7 +262,7 @@ public class MazeClient extends Thread{
        
     
     @SuppressWarnings("unchecked")
-	private void takeActionOnResult(HashMap<String,Object> res,GameMethod gs){
+	private Boolean takeActionOnResult(HashMap<String,Object> res,GameMethod gs){
     	
     	int msgType;
     	MazeClient mc = this;
@@ -271,25 +277,48 @@ public class MazeClient extends Thread{
 				System.out.println(message);
 				break;
 			case MessageType.MazeObject:    					
-				mc.gameBoard = (int[][]) res.get(Constants.MessageObject);
-				mc.pList = (HashMap<Integer,Player>)res.get(Constants.Players);								
+				mc.gameBoard = (int[][]) res.get(Constants.MessageObject);				
+				mc.pList = (HashMap<Integer,Player>)res.get(Constants.Players);							
 				mc.nTreasures = Integer.parseInt(res.get(Constants.Treasures).toString());												
 				mc.printGameBoard();
 				mc.backUpServerID = Integer.parseInt(res.get(Constants.BackUpServerID).toString());
 				break;
 			case MessageType.GameOver:        				
 				message = res.get(Constants.MessageObject).toString();
-				System.out.println("Game Over. Thank you for playing...");	
-				//If game gets over client should move out of this while loop
-				break;
+				mc.pList = (HashMap<Integer,Player>)res.get(Constants.Players);
+				System.out.println("Game Over. Thank you for playing...");
+				System.out.println("----------- Final Scores ---------------");
+				this.printFinalScores();
+				return false;
 			default :
 				System.out.println("Unknown response from the server");
 			
 		
 		}
 		
-		
+		return true;
 	
+    	
+    }
+    
+    
+    private void printFinalScores(){
+    	
+    	int win = 0;
+    	int max = 0;
+    	int score = 0;
+    	for(Entry<Integer, Player> p: this.pList.entrySet()){
+    		score = p.getValue().getPlayerScore();    		
+    		System.out.println("Player "+p.getKey()+" : "+score);
+    		if(score > max){
+    			max = score;
+    			win = p.getKey();
+    		}
+    		
+    	}
+    	
+    	System.out.println("Player "+win+" wins with score "+max);
+    	
     	
     }
     
