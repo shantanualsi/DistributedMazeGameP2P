@@ -43,7 +43,7 @@ public class MazeClient extends Thread{
 		} catch (UnknownHostException e) {
 			System.out.println("Unknown Host");
 		}
-    	
+
     	this.pList = new HashMap<Integer,Player>();
     	    	
     }
@@ -56,14 +56,20 @@ public class MazeClient extends Thread{
 		//Start the client registry
 		this.startClientRegistry();
 		
-		//Get the server registry Object
-		gs = this.getServerRegistryObject(this.host,1099);
+		try{
+			//Get the server registry Object
+			gs = this.getServerRegistryObject(this.host,1099);
+		}catch(Exception e){
+			
+			System.out.println("Error connecting to server");
+			
+		}
 		
 		//Connect to the server
 		this.joinGame(gs);				
 	    	    			
 		this.getUserInput(gs);
-	
+				
     }
 	
 	
@@ -71,7 +77,7 @@ public class MazeClient extends Thread{
 		
 		HashMap<String,Object> res = null;
 		String text = "";
-    	
+    	Boolean act = true;
     	while(true){
     			    			
     		try{
@@ -89,24 +95,46 @@ public class MazeClient extends Thread{
     			//If result is not null
     			if(!(res == null)){
     				
-    				takeActionOnResult(res,gs);
+    				act = takeActionOnResult(res,gs);
+    				
+    				if(!act){
+    					break;
+    				}
     			}
     			
     				    		
 	    	}catch(RemoteException re){
 	    		
-				System.out.println("Server Down");			
-				System.out.println("BackUp server "+this.backUpServerID);
-				try {
-					Player p = this.pList.get(this.backUpServerID);
-					System.out.println("IP is "+p.getIP()+" port is "+p.getPort());
-					gs = this.getServerRegistryObject(p.getIP(), p.getPort());
-					res = this.makeAMove(text, gs);
-				} catch (RemoteException e) {
-					// TODO Auto-generated catch block
-					e.printStackTrace();
-				}    			
-				takeActionOnResult(res,gs);												
+				System.out.println("Server Down");							
+				while(true){				
+					try {
+						System.out.println("Connecting to BackUp Server at "+this.backUpServerID);
+						Player p = this.pList.get(this.backUpServerID);
+						System.out.println("IP is "+p.getIP()+" port is "+p.getPort());
+						gs = this.getServerRegistryObject(p.getIP(), p.getPort());
+						res = this.makeAMove(text, gs);
+						break;
+					}catch (RemoteException exc) {
+
+						System.out.println("Player "+this.backUpServerID+" is down");
+						this.backUpServerID++;						
+						
+					}										
+					catch (Exception e) {
+
+						System.out.println("Player "+this.backUpServerID+" threw an exception");
+						e.printStackTrace();
+						break;
+					}    			
+
+					
+				}
+				
+				act = takeActionOnResult(res,gs);
+				
+				if(!act){
+					break;
+				}
 				
 			} catch (IOException e) {
 				System.out.println("Cannot read from standard input");
@@ -117,21 +145,15 @@ public class MazeClient extends Thread{
 		
 	}
     
-    private GameMethod getServerRegistryObject(String host,int port){
+    private GameMethod getServerRegistryObject(String host,int port) throws Exception{
     	
     	GameMethod gs = null;    
     	
-    	try {						
-			//Locate server object
-		    this.serverRegistry = LocateRegistry.getRegistry(host,port);
-		    gs = (GameMethod) serverRegistry.lookup("GameImplementation");
-		    
-		    
-		} catch (Exception e) {
-		    System.err.println("Client exception: " + e.toString());
-		    e.printStackTrace();
-		}
-    	
+    							
+		//Locate server object
+	    this.serverRegistry = LocateRegistry.getRegistry(host,port);
+	    gs = (GameMethod) serverRegistry.lookup("GameImplementation");
+	    		   	
     	return gs;
     }
     
@@ -162,18 +184,13 @@ public class MazeClient extends Thread{
 				mc.clientID = Integer.parseInt(res.get(Constants.MessageObject).toString());
 				mc.boardSize = Integer.parseInt(res.get(Constants.BoardSize).toString());
 				mc.backUpServerID = Integer.parseInt(res.get(Constants.BackUpServerID).toString());
-				System.out.println("Connected with id "+ mc.clientID);
+				System.out.println("You are Player "+ mc.clientID);
 
 				
 				//Register My GameImplementation 
 				this.registerClientGI(gs);
-				//If I am the backup server 
-				//Register my object for RMI
-				/*if(mc.clientID == mc.backUpServerID){
-					
-					this.startBackUp(gs);
-					
-				}*/
+				
+				//Get the time left to start the game and then sleep for that amount of time
 				long waitTime = Long.parseLong(res.get(Constants.TimeLeft).toString());
 				System.out.println("Please wait for "+(int)waitTime/1000+" seconds for game to begin.");
 				try {
@@ -192,14 +209,12 @@ public class MazeClient extends Thread{
 					try {
 						res = gs.GetInitialGameState(this.clientID);
 					} catch (RemoteException e) {
-						// TODO Auto-generated catch block
 						e.printStackTrace();
 					}
 					
 					msgType = Integer.parseInt(res.get(Constants.MessageType).toString());
 					
-					if(msgType == MessageType.ConnectSuccess){
-						
+					if(msgType == MessageType.ConnectSuccess){						
 						
 						System.out.println("Game Started");
 						mc.gameBoard = (int[][]) res.get(Constants.MessageObject);						
@@ -211,8 +226,7 @@ public class MazeClient extends Thread{
 					
 					
 				}
-				
-				
+								
 				break;
 			case MessageType.ConnectError:
 				String msg =res.get(Constants.MessageObject).toString(); 
@@ -236,36 +250,19 @@ public class MazeClient extends Thread{
 			mygs = new GameImplementation(this.boardSize,this.nTreasures,this.clientID,this.backUpServerID,this.pList);						
 			this.registry.bind("GameImplementation",mygs);
     	}catch (RemoteException e1) {
-			// TODO Auto-generated catch block
+    		
 			e1.printStackTrace();
 		} catch (AlreadyBoundException e) {
-			// TODO Auto-generated catch block
+
 			e.printStackTrace();
 		}
 		
     	
     }
-    
-   /* private void startBackUp(GameMethod gs){
-    	
-    	GameImplementation mygs = null;
-    	
-    	try {
-			mygs = new GameImplementation(this.boardSize,this.nTreasures,this.clientID,this.pList);						
-			this.registry.bind("GameImplementation",mygs);
-			gs.startBackUpService();
-		} catch (RemoteException e1) {
-			// TODO Auto-generated catch block
-			e1.printStackTrace();
-		} catch (AlreadyBoundException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
-	
-    }*/
+       
     
     @SuppressWarnings("unchecked")
-	private void takeActionOnResult(HashMap<String,Object> res,GameMethod gs){
+	private Boolean takeActionOnResult(HashMap<String,Object> res,GameMethod gs){
     	
     	int msgType;
     	MazeClient mc = this;
@@ -280,36 +277,48 @@ public class MazeClient extends Thread{
 				System.out.println(message);
 				break;
 			case MessageType.MazeObject:    					
-				mc.gameBoard = (int[][]) res.get(Constants.MessageObject);
-				mc.pList = (HashMap<Integer,Player>)res.get(Constants.Players);								
+				mc.gameBoard = (int[][]) res.get(Constants.MessageObject);				
+				mc.pList = (HashMap<Integer,Player>)res.get(Constants.Players);							
 				mc.nTreasures = Integer.parseInt(res.get(Constants.Treasures).toString());												
 				mc.printGameBoard();
 				mc.backUpServerID = Integer.parseInt(res.get(Constants.BackUpServerID).toString());
-				/*
-				//Backup ID changed
-				if(backUpServerID != mc.backUpServerID){
-					
-					if(backUpServerID == mc.clientID){
-						
-						this.startBackUp(gs);
-					}
-					mc.backUpServerID = backUpServerID;
-					
-				}*/
 				break;
 			case MessageType.GameOver:        				
 				message = res.get(Constants.MessageObject).toString();
-				System.out.println("Game Over. Thank you for playing...");	
-				//If game gets over client should move out of this while loop
-				break;
+				mc.pList = (HashMap<Integer,Player>)res.get(Constants.Players);
+				System.out.println("Game Over. Thank you for playing...");
+				System.out.println("----------- Final Scores ---------------");
+				this.printFinalScores();
+				return false;
 			default :
 				System.out.println("Unknown response from the server");
 			
 		
 		}
 		
-		
+		return true;
 	
+    	
+    }
+    
+    
+    private void printFinalScores(){
+    	
+    	int win = 0;
+    	int max = 0;
+    	int score = 0;
+    	for(Entry<Integer, Player> p: this.pList.entrySet()){
+    		score = p.getValue().getPlayerScore();    		
+    		System.out.println("Player "+p.getKey()+" : "+score);
+    		if(score > max){
+    			max = score;
+    			win = p.getKey();
+    		}
+    		
+    	}
+    	
+    	System.out.println("Player "+win+" wins with score "+max);
+    	
     	
     }
     
@@ -361,8 +370,6 @@ public class MazeClient extends Thread{
     
     private void printGameBoard(){
     	
-    	//[TODO] Add code to print the score
-    	//[TODO] Screen should get cleared
     	for (int i = 0; i < this.boardSize; i++) {
 			for (int j = 0; j < this.boardSize; j++) {
 				System.out.print(this.gameBoard[i][j]+"\t");
