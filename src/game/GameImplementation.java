@@ -175,7 +175,6 @@ public class GameImplementation extends UnicastRemoteObject implements GameMetho
 	public void startGame(){
 		
 		this.gameInfo = GameInfo.Started;
-		//[TODO] All connected clients should get the info that game has started 
 		
 	}
 	
@@ -307,7 +306,7 @@ public class GameImplementation extends UnicastRemoteObject implements GameMetho
 		}				
 		
 		if(this.gameInfo == GameInfo.Waiting){
-			//[TODO] It should return the time, how long should the client wait
+
 			return createMessage(MessageType.Error,"Please wait for game to start..");
 			
 		}else if(this.gameInfo == GameInfo.GameOver){
@@ -392,9 +391,8 @@ public class GameImplementation extends UnicastRemoteObject implements GameMetho
 				System.out.println("Player "+this.backUpServerID+" is now backup.");
 				break;
 			} catch (RemoteException e) {
+				System.out.println("Player "+this.backUpServerID+" is down");
 				this.backUpServerID++;
-				// TODO Auto-generated catch block
-				e.printStackTrace();
 			} catch (NotBoundException e) {
 				// TODO Auto-generated catch block				
 				e.printStackTrace();
