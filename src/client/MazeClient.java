@@ -66,7 +66,9 @@ public class MazeClient extends Thread{
 		
 		//Connect to the server
 		this.joinGame(gs);				
-	    	    			
+		
+		
+		//Take user input
 		this.getUserInput(gs);
 				
     }
@@ -107,7 +109,7 @@ public class MazeClient extends Thread{
 				System.out.println("Server Down");							
 				while(true){				
 					try {
-						System.out.println("Connecting to BackUp Server at "+this.backUpServerID);
+						System.out.println("Connecting to BackUp Server at "+(char)(this.backUpServerID+64));
 						Player p = this.pList.get(this.backUpServerID);
 						System.out.println("IP is "+p.getIP()+" port is "+p.getPort());
 						gs = this.getServerRegistryObject(p.getIP(), p.getPort());

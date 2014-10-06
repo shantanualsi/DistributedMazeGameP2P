@@ -291,7 +291,8 @@ public class GameImplementation extends UnicastRemoteObject implements GameMetho
 		//We need to create a new backupserver here
 		if(this.serverID == this.backUpServerID){				
 			this.backUpServerID++;
-			this.updateBackUpObject();						
+			this.updateBackUpObject();
+			//Also start the new heartbeat thread here
 			HeartBeatThread hbThread = new HeartBeatThread(this.backgs,this);
 			hbThread.start();
 			
@@ -414,7 +415,7 @@ public class GameImplementation extends UnicastRemoteObject implements GameMetho
 		this.backUpServerID = backUpServerID;
 		//printGameBoard();
 		
-		System.out.println("Received backup information.");
+		System.out.print("*");
 		
 	}
 }
