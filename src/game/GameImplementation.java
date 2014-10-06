@@ -10,7 +10,6 @@ import java.util.Random;
 
 import server.WaitConnect;
 
-
 public class GameImplementation extends UnicastRemoteObject implements GameMethod{
 
 	private int boardSize;
@@ -388,12 +387,12 @@ public class GameImplementation extends UnicastRemoteObject implements GameMetho
 				registry = LocateRegistry.getRegistry(backUpPlayer.getIP(), backUpPlayer.getPort());
 				this.backgs = (GameMethod) registry.lookup("GameImplementation");
 				System.out.println("Updated BackUp Object");
-				System.out.println("Player "+this.backUpServerID+" is now backup.");
+				System.out.println("Player "+(char)(this.backUpServerID+64)+" is now backup.");
 				//Send the initial updated state
 				this.backgs.receiveBackUp(this.gameBoard, this.pList,this.numberOfTreasures,this.backUpServerID);
 				break;
 			} catch (RemoteException e) {
-				System.out.println("Player "+this.backUpServerID+" is down");
+				System.out.println("Player "+(char)(this.backUpServerID+64)+" is down");
 				this.backUpServerID++;
 			} catch (NotBoundException e) {
 				

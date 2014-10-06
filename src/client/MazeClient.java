@@ -34,8 +34,7 @@ public class MazeClient extends Thread{
 	Registry serverRegistry;
 	
 	
-    public MazeClient(String host) {
-    	
+    public MazeClient(String host) {    	
     	this.host = host;
     	this.port = 1099;
     	try {
@@ -116,13 +115,13 @@ public class MazeClient extends Thread{
 						break;
 					}catch (RemoteException exc) {
 
-						System.out.println("Player "+this.backUpServerID+" is down");
+						System.out.println("Player "+(char)(this.backUpServerID+64)+" is down");
 						this.backUpServerID++;						
 						
 					}										
 					catch (Exception e) {
 
-						System.out.println("Player "+this.backUpServerID+" threw an exception");
+						System.out.println("Player "+(char)(this.backUpServerID+64)+" threw an exception");
 						e.printStackTrace();
 						break;
 					}    			
@@ -184,7 +183,7 @@ public class MazeClient extends Thread{
 				mc.clientID = Integer.parseInt(res.get(Constants.MessageObject).toString());
 				mc.boardSize = Integer.parseInt(res.get(Constants.BoardSize).toString());
 				mc.backUpServerID = Integer.parseInt(res.get(Constants.BackUpServerID).toString());
-				System.out.println("You are Player "+ mc.clientID);
+				System.out.println("You are Player "+ (char)(mc.clientID+64));
 
 				
 				//Register My GameImplementation 
@@ -304,15 +303,15 @@ public class MazeClient extends Thread{
     
     private void printFinalScores(){
     	
-    	int win = 0;
+    	char win='0';
     	int max = 0;
     	int score = 0;
     	for(Entry<Integer, Player> p: this.pList.entrySet()){
     		score = p.getValue().getPlayerScore();    		
-    		System.out.println("Player "+p.getKey()+" : "+score);
+    		System.out.println("Player "+(char)(Integer.parseInt(p.getKey().toString())+64)+" : "+score);
     		if(score > max){
     			max = score;
-    			win = p.getKey();
+    			win = (char)(Integer.parseInt(p.getKey().toString())+64);
     		}
     		
     	}
@@ -372,7 +371,16 @@ public class MazeClient extends Thread{
     	
     	for (int i = 0; i < this.boardSize; i++) {
 			for (int j = 0; j < this.boardSize; j++) {
-				System.out.print(this.gameBoard[i][j]+"\t");
+				if(this.gameBoard[i][j] <= 0){
+					
+					System.out.print(Math.abs(this.gameBoard[i][j])+"\t");
+				}else{
+					System.out.print((char)(this.gameBoard[i][j]+64)+"\t");
+					
+				}
+				
+				
+				
 			}
 			System.out.println();
 		}
@@ -386,7 +394,7 @@ public class MazeClient extends Thread{
     	
     	for(Entry<Integer, Player> p: this.pList.entrySet()){
     		
-    		System.out.println("Player "+p.getKey()+" : "+p.getValue().getPlayerScore());
+    		System.out.println("Player "+(char)(Integer.parseInt(p.getKey().toString())+64)+" : "+p.getValue().getPlayerScore());
     		
     	}
     	
