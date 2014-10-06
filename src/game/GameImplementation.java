@@ -11,8 +11,6 @@ import java.util.Random;
 import server.WaitConnect;
 
 
-//[TODO] Add synchronization
-
 public class GameImplementation extends UnicastRemoteObject implements GameMethod{
 
 	private int boardSize;
@@ -114,19 +112,7 @@ public class GameImplementation extends UnicastRemoteObject implements GameMetho
 		//this.printGameBoard();
 		
 	}
-	
-	//Prints the gameBoard on server
-	/*private void printGameBoard(){
 		
-		for (int i = 0; i < this.boardSize; i++) {
-			for (int j = 0; j < this.boardSize; j++) {
-				System.out.print(this.gameBoard[i][j]+"\t");
-			}
-			System.out.println();
-		}
-		
-		System.out.println();
-	}*/
 	
 	//Checks if position x,y is occupied by the player or not
 	private Boolean isOccupiedByPlayer(int x,int y){
@@ -181,7 +167,7 @@ public class GameImplementation extends UnicastRemoteObject implements GameMetho
 	}
 	
 	
-	public HashMap<String,Object> ConnectToGame(String clientIP,int clientPort){
+	public synchronized HashMap<String,Object> ConnectToGame(String clientIP,int clientPort){
 		
 		
 		switch(this.gameInfo){
@@ -234,7 +220,7 @@ public class GameImplementation extends UnicastRemoteObject implements GameMetho
 	
 	
 	//Connects a client to the game
-	public HashMap<String,Object> GetInitialGameState(int id){
+	public synchronized HashMap<String,Object> GetInitialGameState(int id){
 		
 		HashMap <String,Object> hm;
 		
@@ -297,7 +283,7 @@ public class GameImplementation extends UnicastRemoteObject implements GameMetho
 	
 	
 	//Makes the move given the is of player and direction
-	public HashMap<String,Object> move(int id,int dir){			
+	public synchronized HashMap<String,Object> move(int id,int dir){			
 		
 		HashMap<String,Object> hm;
 		
@@ -306,7 +292,7 @@ public class GameImplementation extends UnicastRemoteObject implements GameMetho
 		//We need to create a new backupserver here
 		if(this.serverID == this.backUpServerID){				
 			this.backUpServerID++;
-			this.updateBackUpObject();
+			this.updateBackUpObject();						
 			HeartBeatThread hbThread = new HeartBeatThread(this.backgs,this);
 			hbThread.start();
 			
@@ -379,7 +365,8 @@ public class GameImplementation extends UnicastRemoteObject implements GameMetho
 			this.backgs.receiveBackUp(this.gameBoard, this.pList,this.numberOfTreasures,this.backUpServerID);
 		} catch (RemoteException e) {
 			
-			e.printStackTrace();
+			System.out.println("BackUp is down. Ignoring it as this will be handled by server");
+			
 		}
 		
 			
@@ -402,6 +389,8 @@ public class GameImplementation extends UnicastRemoteObject implements GameMetho
 				this.backgs = (GameMethod) registry.lookup("GameImplementation");
 				System.out.println("Updated BackUp Object");
 				System.out.println("Player "+this.backUpServerID+" is now backup.");
+				//Send the initial updated state
+				this.backgs.receiveBackUp(this.gameBoard, this.pList,this.numberOfTreasures,this.backUpServerID);
 				break;
 			} catch (RemoteException e) {
 				System.out.println("Player "+this.backUpServerID+" is down");
