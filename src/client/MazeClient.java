@@ -34,9 +34,9 @@ public class MazeClient extends Thread{
 	Registry serverRegistry;
 	
 	
-    public MazeClient(String host) {    	
+    public MazeClient(String host,int port) {    	
     	this.host = host;
-    	this.port = 1099;
+    	this.port = port;
     	try {
 			this.myIP = InetAddress.getLocalHost().getHostAddress();			
 		} catch (UnknownHostException e) {
@@ -369,7 +369,7 @@ public class MazeClient extends Thread{
     }
     
     
-    private void printGameBoard(){
+    private synchronized void printGameBoard(){
     	
     	for (int i = 0; i < this.boardSize; i++) {
 			for (int j = 0; j < this.boardSize; j++) {

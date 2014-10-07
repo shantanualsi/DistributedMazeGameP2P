@@ -9,17 +9,19 @@ public class MazeGame {
 	public static void main(String[] args){
 				
 		String serverip = "localhost";
+		int port        = 1099;
 		
 		switch(args.length){		
 		
 		//Acting as Client now
-		case 1: 				
+		case 2: 				
 				serverip = args[0];
+				port     = Integer.parseInt(args[1]);
 				break;
 		//Acting as Server now
-		case 2:						
-			int gridsize = Integer.parseInt(args[0]);
-			int nTreasures = Integer.parseInt(args[1]);
+		case 3:
+			int gridsize = Integer.parseInt(args[1]);
+			int nTreasures = Integer.parseInt(args[2]);
 			
 			if(nTreasures == 0){
 				
@@ -38,13 +40,13 @@ public class MazeGame {
 			break;
 		default:
 				System.out.println("Usage");
-				System.out.println("play.ClientServer <gridsize> <numberoftreasures>");
-				System.out.println("play.ClientServer <IPAddress>");
+				System.out.println("play.MazeGame server <gridsize> <numberoftreasures>");
+				System.out.println("play.MazeGame <IPAddress> <port>");
 				System.exit(-1);
 			
 		}
 				
-		startGameClient(serverip);
+		startGameClient(serverip,port);
 		
 		
 	}
@@ -65,10 +67,10 @@ public class MazeGame {
 		
 	}
 	
-	private static void startGameClient(String serverip){
+	private static void startGameClient(String serverip,int port){
 		
 		
-		MazeClient mc = new MazeClient(serverip);		
+		MazeClient mc = new MazeClient(serverip,port);
 		mc.start();
 		
 	}
