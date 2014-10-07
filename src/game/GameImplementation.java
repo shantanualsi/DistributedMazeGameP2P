@@ -108,7 +108,7 @@ public class GameImplementation extends UnicastRemoteObject implements GameMetho
 			
 		}
 		
-		//this.printGameBoard();
+
 		
 	}
 		
@@ -382,7 +382,7 @@ public class GameImplementation extends UnicastRemoteObject implements GameMetho
 		
 		//Keep finding and updating the backup
 		while(true){
-			//[TODO] break out of this loop if it exceeds the player limit
+
 			Player backUpPlayer = this.pList.get(this.backUpServerID);
 			try {
 				registry = LocateRegistry.getRegistry(backUpPlayer.getIP(), backUpPlayer.getPort());
@@ -413,7 +413,6 @@ public class GameImplementation extends UnicastRemoteObject implements GameMetho
 		this.pList = pList;
 		this.numberOfTreasures = numberOfTreasures;
 		this.backUpServerID = backUpServerID;
-		//printGameBoard();
 		
 		System.out.print("*");
 		
